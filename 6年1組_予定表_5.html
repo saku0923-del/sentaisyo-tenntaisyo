@@ -1,0 +1,2677 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6年1組 予定表</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --paper: #fbf6e8;
+  --paper-deep: #f0e8d0;
+  --ink: #0d1519;
+  --ink-soft: #30383c;
+  --navy: #13345c;
+  --navy-deep: #081e3a;
+  --moss: #2c4a2a;
+  --moss-deep: #1a3318;
+  --vermillion: #a33f32;
+  --vermillion-deep: #7a2a1e;
+  --gold: #6e5420;
+  --line: #b3a886;
+  --line-soft: #cec3a3;
+  --today-bg: #fff4c9;
+  --today-ring: #c89018;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body {
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(157,124,63,0.04) 0, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(26,58,92,0.04) 0, transparent 40%),
+    repeating-linear-gradient(45deg, rgba(157,124,63,0.015) 0 2px, transparent 2px 6px);
+}
+.mincho { font-family: 'Shippori Mincho', serif; }
+
+/* === ヘッダー === */
+.header {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 28px 32px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--ink);
+  position: relative;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  left: 32px; right: 32px; bottom: -6px;
+  height: 1px; background: var(--ink);
+}
+.title-block { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.title-main {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.title-sub {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 14px;
+  color: var(--ink-soft);
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px; height: 54px;
+  border: 2.5px solid var(--vermillion);
+  color: var(--vermillion);
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transform: rotate(-4deg);
+  border-radius: 4px;
+  background: rgba(183,76,62,0.04);
+  line-height: 1.1;
+  text-align: center;
+  flex-shrink: 0;
+}
+.header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn {
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  padding: 9px 15px;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.15s;
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn-ghost { border-color: var(--line); color: var(--ink-soft); }
+.btn-ghost:hover { background: var(--paper-deep); color: var(--ink); border-color: var(--ink-soft); }
+.btn-primary { background: var(--navy-deep); color: var(--paper); border-color: var(--navy-deep); }
+.btn-primary:hover { background: var(--ink); border-color: var(--ink); }
+.btn-danger { border-color: var(--vermillion); color: var(--vermillion); }
+.btn-danger:hover { background: var(--vermillion); color: var(--paper); }
+.btn-accent { background: var(--moss-deep); color: var(--paper); border-color: var(--moss-deep); }
+.btn-accent:hover { background: var(--ink); border-color: var(--ink); }
+
+/* === タブ === */
+.tabs {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 18px 32px 0;
+  display: flex;
+  gap: 6px;
+  border-bottom: 2px solid var(--ink);
+}
+.tab {
+  background: var(--paper-deep);
+  border: 2px solid var(--line);
+  border-bottom: none;
+  padding: 13px 28px 12px;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+  letter-spacing: 0.15em;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  border-radius: 4px 4px 0 0;
+  min-width: 100px;
+}
+.tab:hover { background: #fff; }
+.tab.active {
+  background: var(--navy-deep);
+  color: #fff;
+  border-color: var(--navy-deep);
+  box-shadow: 0 -2px 0 var(--vermillion) inset;
+}
+
+/* === メインエリア === */
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 32px 80px;
+}
+.view { display: none; }
+.view.active { display: block; }
+
+/* === ナビゲーション === */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.week-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.03em;
+  background: #fff;
+  padding: 10px 18px;
+  border: 2px solid var(--ink);
+  border-left: 6px solid var(--vermillion);
+  display: inline-block;
+}
+.week-label .term {
+  display: inline-block;
+  padding: 5px 14px;
+  background: var(--navy-deep);
+  color: #fff;
+  font-size: 15px;
+  margin-right: 12px;
+  vertical-align: middle;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  border-radius: 2px;
+}
+.nav-buttons { display: flex; gap: 8px; }
+.nav-btn {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover { background: var(--ink); color: var(--paper); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.nav-btn:disabled:hover { background: var(--paper); color: var(--ink); }
+
+/* === 週表示 === */
+.week-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(5, 1fr);
+  gap: 0;
+  background: var(--ink);
+  border: 3px solid var(--ink);
+}
+.wg-cell {
+  background: #fff;
+  border-right: 1.5px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
+  padding: 9px 7px;
+  min-height: 100px;
+  position: relative;
+}
+.wg-cell:last-child { border-right: none; }
+.wg-header {
+  background: var(--navy-deep);
+  color: #fff;
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 800;
+  text-align: center;
+  padding: 12px 6px;
+  min-height: auto;
+  border-right: 1.5px solid rgba(255,255,255,0.25);
+  border-bottom: 3px solid var(--ink);
+}
+.wg-header:last-child { border-right: none; }
+.wg-header .day-name { font-size: 19px; letter-spacing: 0.1em; font-weight: 900; }
+.wg-header .day-date { font-size: 15px; opacity: 1; margin-top: 4px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 700; color:#fff4c9; }
+.wg-header.is-today {
+  background: var(--vermillion-deep);
+  box-shadow: inset 0 -5px 0 var(--today-ring);
+}
+.wg-header.is-today .day-name::after {
+  content: '今日';
+  display: block;
+  font-size: 12px;
+  background: var(--today-ring);
+  color: #fff;
+  padding: 2px 8px;
+  margin-top: 5px;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  letter-spacing: 0.05em;
+  font-weight: 900;
+  border-radius: 2px;
+}
+.wg-period {
+  background: var(--navy);
+  color: #fff;
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 900;
+  font-size: 17px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  border-right: 1.5px solid var(--navy-deep);
+}
+.wg-subject {
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+  gap: 5px;
+}
+.wg-subject:hover { background: #fffbed; }
+.wg-subject.is-today { background: var(--today-bg); }
+.wg-subject.is-today:hover { background: #ffe9a8; }
+.wg-subject.empty {
+  background: repeating-linear-gradient(-45deg, #f5f1e0 0 7px, #e8e0c4 7px 8px);
+  cursor: default;
+}
+.subj-tag {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-weight: 900;
+  font-size: 19px;
+  color: #fff;
+  align-self: flex-start;
+  letter-spacing: 0.05em;
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.25);
+  line-height: 1.2;
+}
+.subj-unit {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.45;
+  font-weight: 700;
+  word-break: break-word;
+}
+.subj-progress {
+  font-size: 13px;
+  color: var(--navy-deep);
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 800;
+  background: #eaf0f8;
+  padding: 2px 7px;
+  border-radius: 2px;
+  align-self: flex-start;
+}
+.subj-test {
+  display: inline-block;
+  padding: 3px 8px;
+  background: var(--vermillion-deep);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  border-radius: 2px;
+  align-self: flex-start;
+  letter-spacing: 0.05em;
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+}
+.subj-memo {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.4;
+  background: #fff5d6;
+  padding: 4px 7px;
+  border-left: 3px solid var(--gold);
+  border-radius: 2px;
+}
+.edit-hint {
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.wg-subject:hover .edit-hint { opacity: 0.7; }
+
+/* === 教科カラー === */
+.subj-国 { background: #b74c3e; }
+.subj-算 { background: #1a3a5c; }
+.subj-理 { background: #3d5a3d; }
+.subj-社 { background: #9d6b2f; }
+.subj-音 { background: #7a4579; }
+.subj-図 { background: #d18a3a; color:#fff; }
+.subj-体 { background: #c94848; }
+.subj-家 { background: #5d7a4a; }
+.subj-英 { background: #2f6b7a; }
+.subj-道 { background: #6b5a8a; }
+.subj-総 { background: #4a6b5a; }
+.subj-学 { background: #5a5a5a; }
+.subj-委 { background: #3a4a5a; }
+.subj-ク { background: #5a3a5a; }
+.subj-行 { background: #1f2a2e; }
+.subj-児 { background: #3a5a5a; }
+
+/* === 月表示（縦リスト形式） === */
+.month-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.month-day {
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-left: 6px solid var(--navy);
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 18px;
+  align-items: flex-start;
+}
+.month-day.is-today {
+  border-color: var(--vermillion-deep);
+  border-left-color: var(--vermillion);
+  background: var(--today-bg);
+  box-shadow: 0 0 0 2px var(--today-ring) inset;
+}
+.month-day.is-sun { border-left-color: var(--vermillion-deep); }
+.month-day.is-sat { border-left-color: var(--navy-deep); }
+.month-day.is-holiday {
+  background: #f3eed8;
+  border-left-color: var(--line);
+  opacity: 0.9;
+}
+.md-date-block {
+  text-align: left;
+  border-right: 2px solid var(--line);
+  padding-right: 14px;
+  min-height: 64px;
+}
+.md-date-num {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 900;
+  font-size: 36px;
+  line-height: 1;
+  color: var(--ink);
+}
+.month-day.is-sun .md-date-num { color: var(--vermillion-deep); }
+.month-day.is-sat .md-date-num { color: var(--navy-deep); }
+.month-day.is-today .md-date-num { color: var(--vermillion-deep); }
+.md-dow {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-top: 3px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.md-today-badge {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 2px 7px;
+  background: var(--today-ring);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.md-periods {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.md-period-row {
+  display: grid;
+  grid-template-columns: 40px 52px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 7px 4px;
+  border-bottom: 1.5px solid var(--line-soft);
+  cursor: pointer;
+  border-radius: 3px;
+}
+.md-period-row:last-child { border-bottom: none; }
+.md-period-row:hover { background: #f5efe1; }
+.md-period-num {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 900;
+  color: #fff;
+  background: var(--navy);
+  font-size: 14px;
+  padding: 3px 0;
+  text-align: center;
+  border-radius: 3px;
+}
+.md-subject-tag {
+  font-size: 16px;
+  padding: 4px 10px;
+  align-self: center;
+}
+.md-detail {
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.5;
+  font-weight: 600;
+}
+.md-detail .unit { font-weight: 800; }
+.md-detail .progress {
+  font-family: 'Shippori Mincho', serif;
+  color: var(--navy-deep);
+  font-weight: 800;
+  margin-left: 8px;
+  font-size: 13px;
+  background: #eaf0f8;
+  padding: 2px 7px;
+  border-radius: 2px;
+}
+.md-detail .test {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--vermillion-deep);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  margin-left: 8px;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+.md-detail .memo {
+  color: var(--ink);
+  font-size: 14px;
+  margin-top: 4px;
+  font-weight: 700;
+  background: #fff5d6;
+  padding: 4px 8px;
+  border-left: 3px solid var(--gold);
+  display: inline-block;
+  border-radius: 2px;
+}
+.md-empty {
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-style: italic;
+  padding: 10px 0;
+}
+
+/* === 学期表示 === */
+.term-weeks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.term-week-card {
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-top: 6px solid var(--navy);
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.term-week-card:hover {
+  border-top-color: var(--vermillion);
+  background: #fffbed;
+  transform: translateY(-2px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.twc-num {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 900;
+  font-size: 13px;
+  color: #fff;
+  background: var(--vermillion-deep);
+  padding: 3px 10px;
+  display: inline-block;
+  letter-spacing: 0.1em;
+  border-radius: 2px;
+}
+.twc-date {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-top: 6px;
+}
+.twc-units {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.twc-unit-row {
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.twc-unit-row .chip {
+  font-size: 11px;
+  padding: 2px 6px;
+  color: #fff;
+  font-weight: 800;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 1px;
+}
+.twc-test-badge {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--vermillion-deep);
+  font-weight: 800;
+}
+
+/* === モーダル === */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 37, 64, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal-backdrop.active { display: flex; }
+.modal {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 6px 6px 0 rgba(15,37,64,0.3);
+}
+.modal.wide { max-width: 780px; }
+.modal-header {
+  background: var(--navy-deep);
+  color: var(--paper);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.modal-title {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--paper);
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.form-row { display: flex; flex-direction: column; gap: 5px; }
+.form-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.1em;
+}
+.form-input, .form-textarea, .form-select {
+  padding: 9px 11px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 500;
+  transition: border 0.15s;
+  width: 100%;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--navy-deep);
+}
+.form-textarea { resize: vertical; min-height: 60px; }
+.form-row-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.form-checkbox input { width: 18px; height: 18px; cursor: pointer; }
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  background: var(--paper);
+}
+.modal-subj-badge {
+  font-size: 12px;
+  padding: 3px 10px;
+  align-self: start;
+  margin-top: 2px;
+}
+
+/* === 教科凡例 === */
+.legend {
+  margin-top: 20px;
+  padding: 14px 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.legend-title {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.1em;
+  margin-right: 6px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-chip {
+  width: 22px; height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 3px;
+}
+
+.hint-banner {
+  background: #eaf0f8;
+  border: 1px solid var(--navy);
+  border-left: 5px solid var(--navy);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.7;
+  font-weight: 500;
+}
+.hint-banner b { color: var(--navy-deep); font-weight: 800; }
+.hint-banner.student {
+  background: #e6eee5;
+  border-color: var(--moss-deep);
+  border-left-color: var(--moss-deep);
+}
+.hint-banner.student b { color: var(--moss-deep); }
+
+/* === モードバッジ === */
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  margin-right: 6px;
+}
+.mode-badge.student {
+  background: var(--moss-deep);
+  color: var(--paper);
+}
+.mode-badge.teacher {
+  background: var(--vermillion-deep);
+  color: var(--paper);
+}
+.mode-badge::before {
+  content: '●';
+  font-size: 8px;
+}
+
+/* 教師モード専用ボタンは児童モードでは非表示 */
+body.mode-student .teacher-only { display: none !important; }
+body.mode-teacher .student-only { display: none !important; }
+
+/* === 児童メモ === */
+.subj-my-memo {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 800;
+  line-height: 1.4;
+  padding: 5px 8px;
+  margin-top: 3px;
+  border-radius: 3px;
+  background: var(--moss-deep);
+  border: none;
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+}
+.subj-my-memo::before {
+  content: '✏ ';
+  color: #ffe8a8;
+}
+.md-detail .my-memo {
+  color: #fff;
+  font-size: 14px;
+  margin-top: 4px;
+  font-weight: 800;
+  background: var(--moss-deep);
+  padding: 4px 10px;
+  border-radius: 3px;
+  display: inline-block;
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+}
+.md-detail .my-memo::before { content: '✏ '; color:#ffe8a8; }
+
+/* === ログインモーダル === */
+.login-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 12px;
+  border: 2px solid var(--vermillion);
+  color: var(--vermillion);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.login-msg {
+  font-family: 'Shippori Mincho', serif;
+  text-align: center;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+.login-error {
+  color: var(--vermillion-deep);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 18px;
+}
+.pw-input {
+  text-align: center;
+  font-size: 20px !important;
+  letter-spacing: 0.5em;
+  font-family: 'Shippori Mincho', serif;
+}
+
+/* === インポート・マッピング === */
+.import-intro {
+  padding: 14px 16px;
+  background: rgba(61,90,61,0.06);
+  border: 1px dashed var(--moss-deep);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+.import-intro b { color: var(--moss-deep); }
+.import-intro code {
+  background: var(--paper-deep);
+  padding: 1px 6px;
+  font-size: 12px;
+  border-radius: 2px;
+  font-family: monospace;
+}
+.drop-zone {
+  border: 2px dashed var(--line);
+  padding: 28px 16px;
+  text-align: center;
+  background: #fff;
+  color: var(--ink-soft);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.drop-zone:hover, .drop-zone.dragging {
+  border-color: var(--navy-deep);
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+.drop-zone b { color: var(--navy-deep); display: block; font-size: 14px; margin-bottom: 4px; }
+.mapping-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.mapping-table th {
+  background: var(--paper-deep);
+  text-align: left;
+  padding: 8px 10px;
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  font-size: 12px;
+  border-bottom: 1px solid var(--line);
+  letter-spacing: 0.05em;
+}
+.mapping-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+.mapping-table td.col-name {
+  font-weight: 700;
+  color: var(--navy-deep);
+  font-family: 'Shippori Mincho', serif;
+}
+.mapping-table td.col-sample {
+  color: var(--ink-soft);
+  font-size: 11px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mapping-table select { font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); background: #fff; }
+
+.preview-list {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 4px 0;
+}
+.preview-item {
+  display: grid;
+  grid-template-columns: 90px 42px 1fr 40px;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+.preview-item:last-child { border-bottom: none; }
+.preview-item.invalid { background: #fdecea; color: var(--vermillion-deep); }
+.preview-date { font-family: 'Shippori Mincho', serif; font-weight: 700; color: var(--ink); }
+.preview-prog { font-family: 'Shippori Mincho', serif; color: var(--ink-soft); font-size: 10px; }
+.import-summary {
+  padding: 10px 14px;
+  background: var(--paper-deep);
+  font-size: 13px;
+  border-left: 4px solid var(--moss-deep);
+}
+.import-summary b { color: var(--moss-deep); }
+.import-summary .warn { color: var(--vermillion-deep); }
+
+/* === レスポンシブ === */
+@media (max-width: 860px) {
+  .header { padding: 20px 16px 12px; }
+  .title-main { font-size: 24px; }
+  .tabs { padding: 14px 16px 0; gap: 4px; }
+  .tab { font-size: 15px; padding: 10px 16px 9px; min-width: 70px; letter-spacing: 0.1em; }
+  .main { padding: 18px 14px 60px; }
+  .week-label { font-size: 19px; padding: 8px 14px; }
+  .week-label .term { font-size: 13px; padding: 4px 10px; }
+  .week-grid { grid-template-columns: 40px repeat(5, 1fr); font-size: 12px; }
+  .wg-cell { padding: 6px 4px; min-height: 88px; }
+  .wg-header { padding: 9px 4px; }
+  .wg-header .day-name { font-size: 15px; }
+  .wg-header .day-date { font-size: 12px; }
+  .wg-period { font-size: 14px; min-height: 88px; }
+  .subj-tag { padding: 3px 8px; font-size: 15px; }
+  .subj-unit { font-size: 12px; }
+  .subj-progress { font-size: 11px; }
+  .subj-memo { font-size: 11px; }
+  .subj-my-memo { font-size: 11px; }
+  .month-day { grid-template-columns: 78px 1fr; padding: 13px 15px; gap: 14px; }
+  .md-date-num { font-size: 28px; }
+  .md-detail { font-size: 13px; }
+  .md-subject-tag { font-size: 14px; padding: 3px 8px; }
+  .twc-date { font-size: 16px; }
+}
+@media (max-width: 540px) {
+  .title-sub { display: none; }
+  .md-period-row { grid-template-columns: 32px 44px 1fr; gap: 8px; }
+  .preview-item { grid-template-columns: 70px 30px 1fr; }
+  .preview-item > :nth-child(4) { display: none; }
+  .tab { font-size: 13px; padding: 9px 12px 8px; min-width: 56px; }
+}
+
+@media print {
+  body { background: #fff; }
+  .tabs, .header-right, .nav-buttons, .hint-banner { display: none !important; }
+  .view:not(.active) { display: none !important; }
+  .main { padding: 10px; max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="title-block">
+    <div>
+      <div class="title-main">6年1組 予定表</div>
+      <div class="title-sub">令和八年度 ／ 学級担任  櫻井 貴大</div>
+    </div>
+    <div class="stamp mincho">6-1<br>予定</div>
+    <div class="mode-badge student" id="mode-badge">児童</div>
+  </div>
+  <div class="header-right">
+    <button class="btn-ghost btn" id="btn-today">今日へ</button>
+    <button class="btn-accent btn teacher-only" id="btn-import">📥 Excel取込</button>
+    <button class="btn-ghost btn" id="btn-save">画像保存</button>
+    <button class="btn-ghost btn" id="btn-print">印刷</button>
+    <button class="btn-danger btn teacher-only" id="btn-reset" title="編集内容を全て初期値に戻します">リセット</button>
+    <button class="btn-primary btn student-only" id="btn-login">🔑 先生用</button>
+    <button class="btn-ghost btn teacher-only" id="btn-logout">🚪 児童画面へ</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-view="week">今週</button>
+  <button class="tab" data-view="month">月</button>
+  <button class="tab" data-view="term">学期</button>
+</nav>
+
+<main class="main" id="capture-area">
+
+  <!-- === 週表示 === -->
+  <section class="view active" id="view-week">
+    <div class="week-nav">
+      <div class="week-label" id="week-label">―</div>
+      <div class="nav-buttons">
+        <button class="nav-btn" id="week-prev">◀</button>
+        <button class="nav-btn" id="week-next">▶</button>
+      </div>
+    </div>
+    <div class="hint-banner teacher-only">
+      授業のコマを<b>タップ</b>すると、単元名・進度・テスト・メモを入力できます。<b>Excel取込</b>ボタンから既存の指導計画表も読み込めます。
+    </div>
+    <div class="hint-banner student">
+      授業のコマを<b>タップ</b>すると、自分用のメモを書けます（持ち物・めあて・感想など）。書いたメモは<b>このタブレットにずっと保存</b>されます。
+    </div>
+    <div class="week-grid" id="week-grid"></div>
+    <div class="legend" id="legend-week"></div>
+  </section>
+
+  <!-- === 月表示 === -->
+  <section class="view" id="view-month">
+    <div class="week-nav">
+      <div class="week-label" id="month-label">―</div>
+      <div class="nav-buttons">
+        <button class="nav-btn" id="month-prev">◀</button>
+        <button class="nav-btn" id="month-next">▶</button>
+      </div>
+    </div>
+    <div class="month-list" id="month-list"></div>
+  </section>
+
+  <!-- === 学期表示 === -->
+  <section class="view" id="view-term">
+    <div class="week-nav">
+      <div class="week-label" id="term-label">―</div>
+      <div class="nav-buttons">
+        <button class="nav-btn" id="term-prev">◀</button>
+        <button class="nav-btn" id="term-next">▶</button>
+      </div>
+    </div>
+    <div class="term-weeks" id="term-weeks"></div>
+  </section>
+
+</main>
+
+<!-- === ログインモーダル === -->
+<div class="modal-backdrop" id="login-backdrop">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-title">先生用画面ログイン</div>
+      <button class="modal-close" id="login-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="login-icon">🔑</div>
+      <div class="login-msg">先生用のパスワードを入力してください</div>
+      <input type="password" class="form-input pw-input" id="pw-input" placeholder="••••" autocomplete="off" inputmode="numeric">
+      <div class="login-error" id="login-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="login-cancel">キャンセル</button>
+      <button class="btn btn-primary" id="login-submit">ログイン</button>
+    </div>
+  </div>
+</div>
+
+<!-- === 編集モーダル === -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">授業の詳細</div>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <span class="subj-tag modal-subj-badge" id="modal-subj-tag">―</span>
+        <span style="margin-left:8px;font-size:13px;color:var(--ink-soft);" id="modal-datetime">―</span>
+      </div>
+
+      <!-- 教師モード専用フィールド -->
+      <div class="teacher-only form-row">
+        <label class="form-label">教科</label>
+        <select class="form-select" id="f-subject"></select>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;" id="f-subject-hint"></div>
+      </div>
+      <div class="teacher-only form-row">
+        <label class="form-label">単元名</label>
+        <input class="form-input" id="f-unit" placeholder="例:線対称・点対称">
+      </div>
+      <div class="teacher-only form-row-split">
+        <div class="form-row">
+          <label class="form-label">今回(何回目)</label>
+          <input class="form-input" id="f-progress-n" type="number" min="1" placeholder="5">
+        </div>
+        <div class="form-row">
+          <label class="form-label">全体回数</label>
+          <input class="form-input" id="f-progress-t" type="number" min="1" placeholder="13">
+        </div>
+      </div>
+      <div class="teacher-only form-checkbox">
+        <input type="checkbox" id="f-test">
+        <label for="f-test">テスト・評価日として記録</label>
+      </div>
+      <div class="teacher-only form-row">
+        <label class="form-label">予定メモ(先生用)</label>
+        <textarea class="form-textarea" id="f-memo" placeholder="自由に書ける欄(持ち物、ねらい、連絡など)"></textarea>
+      </div>
+
+      <!-- 児童モード：先生の情報を読み取り専用で表示 -->
+      <div class="student-only" id="student-readonly-info" style="background:var(--paper-deep);padding:10px 12px;border-left:4px solid var(--navy);font-size:13px;line-height:1.7;"></div>
+
+      <!-- 児童モード専用：自分用メモ -->
+      <div class="student-only form-row">
+        <label class="form-label" style="color:var(--moss-deep);">✏ 自分用メモ</label>
+        <textarea class="form-textarea" id="f-my-memo" placeholder="この授業で気づいたこと、持ち物、宿題、めあてなど自由に書こう" style="border-color:var(--moss);"></textarea>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;">※このメモはあなたのタブレットだけに保存されます</div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-clear">入力をクリア</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" id="modal-cancel">キャンセル</button>
+        <button class="btn btn-primary" id="modal-save">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === インポートモーダル === -->
+<div class="modal-backdrop" id="import-backdrop">
+  <div class="modal wide">
+    <div class="modal-header">
+      <div class="modal-title" id="import-title">Excelから予定を取り込み</div>
+      <button class="modal-close" id="import-close">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- ステップ1: ファイル選択 -->
+      <div id="import-step-1">
+        <div class="import-intro">
+          <b>📘 R8週案Excel（週プロシート）に自動対応！</b><br>
+          「週プロ」シートが複数あるExcelを読み込むと、全週分の<b>教科・単元名・進度・先生名メモ</b>を一括で反映します。<br><br>
+          <b>その他の対応フォーマット</b>：.xlsx / .xls / .csv<br>
+          以下のいずれかの列構成に対応しています：<br>
+          ① <code>日付 / 時限 / 教科 / 単元 / 回数 / 全体数 / テスト / メモ</code><br>
+          ② <code>日付 / 教科 / 単元 / 回数 / 全体数 / テスト / メモ</code>（時限なし・1日1行）<br>
+          ③ <code>開始日 / 教科 / 単元 / 時間数</code>（単元ごとに1行で自動展開）<br>
+          列名は多少異なっても自動判別します。違う場合は次の画面で手動で対応付けできます。
+        </div>
+        <div class="drop-zone" id="drop-zone">
+          <b>クリックしてファイルを選択</b>
+          または、ここにドラッグ＆ドロップ
+        </div>
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none;">
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-ghost" id="btn-download-template">📄 入力用テンプレートをダウンロード</button>
+        </div>
+      </div>
+
+      <!-- ステップ2: 列マッピング -->
+      <div id="import-step-2" style="display:none;">
+        <div class="import-intro">
+          <b>列の対応付け</b>：自動判別結果です。必要があれば変更してください。
+        </div>
+        <div id="sheet-selector-wrap" style="display:none;" class="form-row">
+          <label class="form-label">読み込むシート</label>
+          <select class="form-select" id="sheet-selector"></select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="mapping-table">
+            <thead>
+              <tr><th style="width:28%;">Excel列</th><th style="width:28%;">サンプル値</th><th>対応フィールド</th></tr>
+            </thead>
+            <tbody id="mapping-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ステップ3: プレビュー -->
+      <div id="import-step-3" style="display:none;">
+        <div class="import-summary" id="import-summary"></div>
+        <div style="margin-top:12px;">
+          <div class="form-label" style="margin-bottom:6px;">プレビュー（先頭50件）</div>
+          <div class="preview-list" id="preview-list"></div>
+        </div>
+        <div class="form-checkbox" style="margin-top:12px;">
+          <input type="checkbox" id="f-overwrite">
+          <label for="f-overwrite">既存の入力内容を上書きする（オフなら空欄のコマのみに追加）</label>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="import-back" style="display:none;">戻る</button>
+      <div style="display:flex;gap:8px;margin-left:auto;">
+        <button class="btn btn-ghost" id="import-cancel">閉じる</button>
+        <button class="btn btn-primary" id="import-next" style="display:none;">次へ</button>
+        <button class="btn btn-primary" id="import-apply" style="display:none;">取り込む</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// データ定義
+// ==========================================
+const SUBJECT_NAMES = {
+  '国': '国語', '算': '算数', '理': '理科', '社': '社会',
+  '音': '音楽', '図': '図工', '体': '体育', '家': '家庭',
+  '英': '外国語', '道': '道徳', '総': '総合', '学': '学級活動',
+  '委': '委員会', 'ク': 'クラブ', '行': '行事', '児': '児童会'
+};
+// 教科名→略号の逆引き
+const SUBJECT_ALIASES = {
+  '国語':'国','こくご':'国',
+  '算数':'算','さんすう':'算',
+  '理科':'理','りか':'理',
+  '社会':'社','しゃかい':'社',
+  '音楽':'音','おんがく':'音',
+  '図工':'図','図画工作':'図','ずこう':'図',
+  '体育':'体','たいいく':'体',
+  '家庭':'家','家庭科':'家','かてい':'家',
+  '外国語':'英','英語':'英','外国語活動':'英','えいご':'英',
+  '道徳':'道','特別の教科道徳':'道','どうとく':'道',
+  '総合':'総','総合的な学習の時間':'総','そうごう':'総',
+  '学級活動':'学','学活':'学','がっかつ':'学',
+  '委員会':'委','委員会活動':'委',
+  'クラブ':'ク','クラブ活動':'ク',
+  '行事':'行','学校行事':'行','ぎょうじ':'行',
+  '児童会':'児','児童会活動':'児'
+};
+
+const WEEKS = [
+  { no:1, term:1, start:'2026-04-06', end:'2026-04-11',
+    schedule:[
+      ['/','/','行','算','英'],['/','/','学','道','算'],['/','/','国','社','理'],
+      ['/','/','/','体','理'],['/','/','/','図','行'],['/','/','/','総','/']
+    ]},
+  { no:2, term:1, start:'2026-04-13', end:'2026-04-18',
+    schedule:[['算','算','体','算','英'],['音','英','国','道','音'],['国','行','家','社','理'],['総','社','家','国','理'],['学','体','算','図','社'],['委','国','/','総','算']]},
+  { no:3, term:1, start:'2026-04-20', end:'2026-04-25',
+    schedule:[['算','算','体','国','英'],['国','英','算','算','算'],['国','理','家','社','理'],['総','社','家','体','理'],['学','体','国','/','/'],['ク','国','/','/','/']]},
+  { no:4, term:1, start:'2026-04-27', end:'2026-05-02',
+    schedule:[['算','学','/','算','英'],['音','英','/','道','音'],['国','国','/','行','理'],['家','社','/','図','理'],['/','体','/','図','社'],['/','国','/','総','算']]},
+  { no:5, term:1, start:'2026-05-04', end:'2026-05-09',
+    schedule:[['/','/','/','算','英'],['/','/','/','道','算'],['/','/','/','国','理'],['/','/','/','体','理'],['/','/','/','図','社'],['/','/','/','総','/']]},
+  { no:6, term:1, start:'2026-05-11', end:'2026-05-16',
+    schedule:[['算','算','体','算','英'],['音','国','国','道','算'],['国','理','家','社','理'],['総','社','家','体','理'],['国','体','/','図','社'],['委','国','/','総','社']]},
+  { no:7, term:1, start:'2026-05-18', end:'2026-05-23',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','国','家','国','理'],['総','社','家','体','理'],['学','体','算','図','社'],['ク','行','/','総','算']]},
+  { no:8, term:1, start:'2026-05-25', end:'2026-05-30',
+    schedule:[['算','算','行','算','算'],['音','英','行','国','音'],['国','理','体','社','理'],['総','社','児','図','理'],['学','行','/','図','社'],['国','/','/','総','算']]},
+  { no:9, term:1, start:'2026-06-01', end:'2026-06-06',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','国','家','社','理'],['総','社','家','図','理'],['学','体','算','行','社'],['委','国','/','総','算']]},
+  { no:10, term:1, start:'2026-06-08', end:'2026-06-13',
+    schedule:[['算','算','体','算','英'],['音','英','体','道','音'],['国','理','家','国','理'],['総','社','家','体','理'],['学','体','算','図','社'],['国','国','/','総','算']]},
+  { no:11, term:1, start:'2026-06-15', end:'2026-06-20',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','国','家','社','理'],['総','社','家','国','理'],['学','体','算','図','社'],['ク','国','/','総','算']]},
+  { no:12, term:1, start:'2026-06-22', end:'2026-06-27',
+    schedule:[['算','算','体','算','算'],['音','英','国','理','音'],['国','理','家','国','理'],['総','社','家','体','理'],['学','体','算','図','社'],['国','国','/','総','算']]},
+  { no:13, term:1, start:'2026-06-29', end:'2026-07-04',
+    schedule:[['算','算','体','算','英'],['国','国','国','道','音'],['国','理','家','社','理'],['総','社','家','国','理'],['学','体','算','図','社'],['ク','国','/','総','算']]},
+  { no:14, term:1, start:'2026-07-06', end:'2026-07-11',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','理','家','社','理'],['総','社','家','体','理'],['学','体','算','図','社'],['委','国','/','総','算']]},
+  { no:15, term:1, start:'2026-07-13', end:'2026-07-18',
+    schedule:[['算','算','体','算','英'],['音','英','国','道','算'],['国','理','家','社','行'],['総','社','家','体','学'],['学','体','算','図','/'],['国','国','/','総','/']]},
+  { no:16, term:2, start:'2026-08-31', end:'2026-09-05',
+    schedule:[['/','算','体','算','英'],['/','英','国','道','音'],['/','理','家','社','算'],['/','国','図','体','国'],['/','/','算','国','社'],['/','/','/','/','/']]},
+  { no:17, term:2, start:'2026-09-07', end:'2026-09-12',
+    schedule:[['算','算','体','算','英'],['音','英','国','道','音'],['国','理','家','行','理'],['総','社','家','国','理'],['学','体','算','図','社'],['委','国','/','総','算']]},
+  { no:18, term:2, start:'2026-09-14', end:'2026-09-19',
+    schedule:[['算','算','体','算','算'],['国','英','国','道','音'],['国','理','家','国','理'],['総','社','図','体','理'],['学','体','算','総','学'],['国','国','/','/','/']]},
+  { no:19, term:2, start:'2026-09-21', end:'2026-09-26',
+    schedule:[['/','/','/','算','英'],['/','/','/','道','音'],['/','/','/','社','理'],['/','/','/','国','理'],['/','/','/','図','社'],['/','/','/','総','算']]},
+  { no:20, term:2, start:'2026-09-28', end:'2026-10-03',
+    schedule:[['算','算','体','算','英'],['音','英','国','道','音'],['国','理','家','社','理'],['総','社','家','体','理'],['国','体','算','図','社'],['ク','国','/','総','算']]},
+  { no:21, term:2, start:'2026-10-05', end:'2026-10-10',
+    schedule:[['算','算','体','行','社'],['国','英','算','行','社'],['国','理','家','行','行'],['総','社','図','行','行'],['学','体','学','行','行'],['委','国','/','行','行']]},
+  { no:22, term:2, start:'2026-10-12', end:'2026-10-17',
+    schedule:[['/','算','体','算','英'],['/','英','国','道','音'],['/','理','家','社','理'],['/','社','家','体','理'],['/','体','算','図','社'],['/','国','/','総','算']]},
+  { no:23, term:2, start:'2026-10-19', end:'2026-10-24',
+    schedule:[['算','算','体','算','算'],['国','英','国','道','音'],['国','国','家','社','理'],['総','社','図','国','理'],['学','/','算','図','社'],['ク','/','/','総','算']]},
+  { no:24, term:2, start:'2026-10-26', end:'2026-10-31',
+    schedule:[['算','算','体','理','英'],['国','英','国','算','音'],['国','理','家','社','理'],['総','社','家','体','理'],['社','体','算','図','社'],['国','国','/','総','算']]},
+  { no:25, term:2, start:'2026-11-02', end:'2026-11-07',
+    schedule:[['算','/','体','算','英'],['音','/','国','道','音'],['国','/','家','学','理'],['総','/','図','国','理'],['総','/','算','図','社'],['委','/','/','総','算']]},
+  { no:26, term:2, start:'2026-11-09', end:'2026-11-14',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','理','家','社','理'],['総','社','家','体','理'],['学','体','算','図','社'],['国','国','/','総','算']]},
+  { no:27, term:2, start:'2026-11-16', end:'2026-11-21',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','国','家','社','理'],['総','社','図','体','理'],['学','体','算','国','社'],['国','国','/','総','算']]},
+  { no:28, term:2, start:'2026-11-23', end:'2026-11-28',
+    schedule:[['/','算','体','算','算'],['/','英','国','道','音'],['/','理','家','社','理'],['/','社','家','体','理'],['/','体','算','国','社'],['/','国','/','総','算']]},
+  { no:29, term:2, start:'2026-11-30', end:'2026-12-05',
+    schedule:[['算','算','体','算','英'],['国','英','算','道','音'],['国','理','家','社','理'],['総','社','図','体','理'],['学','体','/','図','社'],['国','国','/','総','算']]},
+  { no:30, term:2, start:'2026-12-07', end:'2026-12-12',
+    schedule:[['算','算','体','体','英'],['音','英','国','体','音'],['国','国','家','社','算'],['総','社','家','国','理'],['国','体','算','図','社'],['委','国','/','総','算']]},
+  { no:31, term:2, start:'2026-12-14', end:'2026-12-19',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','理','家','社','算'],['総','社','図','体','理'],['学','体','算','図','社'],['ク','国','/','総','算']]},
+  { no:32, term:2, start:'2026-12-21', end:'2026-12-26',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','理','家','社','行'],['総','社','家','国','学'],['学','体','算','図','/'],['総','国','/','総','/']]},
+  { no:33, term:3, start:'2027-01-04', end:'2027-01-09',
+    schedule:[['/','/','/','/','学'],['/','/','/','/','音'],['/','/','/','/','理'],['/','/','/','/','理'],['/','/','/','/','/'],['/','/','/','/','/']]},
+  { no:34, term:3, start:'2027-01-11', end:'2027-01-16',
+    schedule:[['/','算','体','算','英'],['/','英','国','道','音'],['/','理','家','社','理'],['/','社','図','体','理'],['/','体','算','行','社'],['/','国','/','行','算']]},
+  { no:35, term:3, start:'2027-01-18', end:'2027-01-23',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','理','家','社','理'],['総','社','図','国','理'],['学','体','算','図','社'],['委','国','/','総','算']]},
+  { no:36, term:3, start:'2027-01-25', end:'2027-01-30',
+    schedule:[['算','算','体','算','英'],['国','英','国','道','音'],['国','理','家','社','理'],['総','社','図','体','理'],['学','体','算','図','社'],['ク','国','/','総','算']]},
+  { no:37, term:3, start:'2027-02-01', end:'2027-02-06',
+    schedule:[['算','算','体','算','英'],['音','英','国','道','音'],['国','理','家','社','理'],['総','社','図','国','理'],['国','体','算','図','社'],['委','国','/','総','算']]},
+  { no:38, term:3, start:'2027-02-08', end:'2027-02-13',
+    schedule:[['算','道','体','/','英'],['国','英','国','/','音'],['国','理','家','/','理'],['総','社','図','/','理'],['学','国','社','/','社'],['国','/','/','/','算']]},
+  { no:39, term:3, start:'2027-02-15', end:'2027-02-20',
+    schedule:[['算','算','社','算','英'],['音','英','国','道','音'],['国','児','家','社','理'],['総','社','図','国','理'],['学','体','算','図','社'],['国','国','/','総','算']]},
+  { no:40, term:3, start:'2027-02-22', end:'2027-02-27',
+    schedule:[['算','/','体','算','英'],['国','/','国','道','音'],['国','/','家','社','理'],['総','/','図','体','理'],['学','/','社','図','社'],['国','/','/','国','算']]},
+  { no:41, term:3, start:'2027-03-01', end:'2027-03-06',
+    schedule:[['算','算','体','算','英'],['音','英','国','道','音'],['国','理','家','社','理'],['総','社','図','国','理'],['学','体','算','図','社'],['国','国','/','/','/']]},
+  { no:42, term:3, start:'2027-03-08', end:'2027-03-13',
+    schedule:[['算','国','国','算','英'],['国','英','行','道','音'],['国','理','行','社','理'],['総','社','国','体','理'],['学','体','理','国','社'],['/','/','/','総','国']]},
+  { no:43, term:3, start:'2027-03-15', end:'2027-03-20',
+    schedule:[['算','国','学','/','/'],['国','英','行','/','/'],['国','理','行','/','/'],['総','社','/','/','/'],['国','/','/','/','/'],['国','/','/','/','/']]},
+  { no:44, term:3, start:'2027-03-22', end:'2027-03-27',
+    schedule:[['/','/','/','/','/'],['/','/','/','/','/'],['/','/','/','/','/'],['/','/','/','/','/'],['/','/','/','/','/'],['/','/','/','/','/']]}
+];
+
+const INITIAL_DETAILS = {
+  '1-1-2': { memo: '始業式' },
+  '1-1-3': { unit: 'つり合いのとれた図形を調べよう', progN: 1, progT: 13 },
+  '1-1-4': { memo: '山田先生(6-3理科)' },
+  '1-2-2': { unit: '6年生になって' },
+  '1-2-3': { unit: '心を形に' },
+  '1-2-4': { unit: 'つり合いのとれた図形を調べよう', progN: 1, progT: 13 },
+  '1-3-2': { unit: 'つないで、つないで、一つのお話', progN: 1, progT: 1 },
+  '1-3-3': { memo: '後藤先生(6-2理科)' },
+  '1-3-4': { unit: '理科ガイダンス', progN: 1, progT: 1 },
+  '1-4-3': { unit: '体つくり運動', progN: 1, progT: 3 },
+  '1-4-4': { unit: 'ものが燃えるしくみ', progN: 1, progT: 8 },
+  '1-5-3': { memo: '入学式' },
+  '1-6-3': { unit: '今の自分を見つめよう', progN: 1, progT: 26 },
+  '2-1-0': { unit: 'つり合いのとれた図形を調べよう', progN: 2, progT: 13 },
+  '2-1-1': { unit: 'つり合いのとれた図形を調べよう', progN: 3, progT: 13 },
+  '2-1-2': { unit: '体つくり運動', progN: 3, progT: 3 },
+  '2-1-3': { unit: 'つり合いのとれた図形を調べよう', progN: 5, progT: 13 },
+  '2-2-2': { unit: '帰り道', progN: 1, progT: 5 },
+  '2-3-0': { unit: '準備', progN: 1, progT: 1 },
+  '2-3-1': { memo: '身体計測' },
+  '2-3-3': { unit: 'ものが燃えるしくみ', progN: 2, progT: 8 },
+  '2-4-0': { unit: '今の自分を見つめよう', progN: 2, progT: 26 },
+  '2-4-3': { unit: '帰り道', progN: 2, progT: 5 },
+  '2-4-4': { unit: 'ものが燃えるしくみ', progN: 3, progT: 8 },
+  '2-5-0': { memo: '委員会や清掃の分担' },
+  '2-5-1': { unit: '体つくり運動', progN: 2, progT: 3 },
+  '2-5-2': { unit: 'つり合いのとれた図形を調べよう', progN: 4, progT: 13 },
+  '2-6-0': { memo: '委員会活動' },
+  '2-6-1': { unit: '伝わるかな、好きな食べ物', progN: 1, progT: 1 },
+  '2-6-3': { unit: '今の自分を見つめよう', progN: 3, progT: 26 },
+  '2-6-4': { unit: 'つり合いのとれた図形を調べよう', progN: 6, progT: 13 },
+  '3-1-0': { unit: 'つり合いのとれた図形を調べよう', progN: 7, progT: 13 },
+  '3-1-1': { unit: 'つり合いのとれた図形を調べよう', progN: 8, progT: 13 },
+  '3-1-2': { unit: '短距離走・リレー', progN: 2, progT: 5 },
+  '3-1-3': { memo: '全国学力調査', isTest: true },
+  '3-2-2': { unit: 'つり合いのとれた図形を調べよう', progN: 9, progT: 13 },
+  '3-2-3': { memo: '全国学力調査', isTest: true },
+  '3-2-4': { unit: 'つり合いのとれた図形を調べよう', progN: 10, progT: 13 },
+  '3-3-0': { unit: '帰り道', progN: 3, progT: 5 },
+  '3-3-3': { unit: 'ものが燃えるしくみ', progN: 4, progT: 8 },
+  '3-3-4': { unit: 'ものが燃えるしくみ', progN: 5, progT: 8 },
+  '3-4-0': { unit: '今の自分を見つめよう', progN: 4, progT: 26 },
+  '3-4-3': { unit: '短距離走・リレー', progN: 3, progT: 5 },
+  '3-4-4': { unit: 'ものが燃えるしくみ', progN: 6, progT: 8 },
+  '3-5-0': { memo: '係を決めよう' },
+  '3-5-1': { unit: '短距離走・リレー', progN: 1, progT: 5 },
+  '3-5-2': { unit: '漢字の形と音・意味', progN: 1, progT: 1 },
+  '3-6-0': { memo: 'クラブ' },
+  '3-6-1': { unit: '帰り道', progN: 4, progT: 5 },
+  '4-1-0': { memo: '全国学力調査質問紙' },
+  '4-1-1': { memo: '歯科検診' },
+  '8-3-2': { memo: 'JOTO2026' },
+  '8-2-2': { memo: 'JOTO2026' },
+  '8-4-2': { memo: '振り返り' },
+  '8-5-4': { memo: 'JOTO2026準備' },
+  '9-5-3': { memo: '眼科検診' },
+  '17-3-3': { memo: '防犯教室・避難訓練' },
+  '21-1-3': { memo: '現地学習' }, '21-2-3': { memo: '現地学習' }, '21-3-3': { memo: '現地学習' }, '21-4-3': { memo: '現地学習' }, '21-5-3': { memo: '現地学習' }, '21-6-3': { memo: '現地学習' },
+  '21-1-4': { memo: '現地学習' }, '21-2-4': { memo: '現地学習' }, '21-3-4': { memo: '現地学習' }, '21-4-4': { memo: '現地学習' }, '21-5-4': { memo: '現地学習' }, '21-6-4': { memo: '現地学習' },
+  '25-3-3': { memo: '薬物乱用防止教室' },
+  '32-3-4': { memo: '終業式' },
+  '34-5-3': { memo: 'こころの劇場' }, '34-6-3': { memo: 'こころの劇場' }
+};
+
+// ==========================================
+// ストレージ
+// ==========================================
+const STORAGE_KEY = 'schedule_6_1_r8_details_v2';
+const STUDENT_MEMO_KEY = 'schedule_6_1_r8_student_memos_v1';
+const MODE_KEY = 'schedule_6_1_r8_mode_v1';
+const SUBJECT_OVERRIDE_KEY = 'schedule_6_1_r8_subject_overrides_v1';
+const TEACHER_PASSWORD = '3955';
+let details = {};
+let studentMemos = {};
+let subjectOverrides = {}; // {key: symbol} キー形式: "weekNo-period-dayIdx"
+let currentMode = 'student';
+
+function getPersisted() {
+  try { if (typeof localStorage !== 'undefined') return localStorage.getItem(STORAGE_KEY); } catch(e) {}
+  return null;
+}
+function setPersisted(obj) {
+  try { if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch(e) {}
+}
+function loadDetails() {
+  details = JSON.parse(JSON.stringify(INITIAL_DETAILS));
+  try {
+    const s = getPersisted();
+    if (s) {
+      const parsed = JSON.parse(s);
+      Object.keys(parsed).forEach(k => {
+        if (parsed[k] === null) delete details[k];
+        else details[k] = parsed[k];
+      });
+    }
+  } catch(e) {}
+}
+function saveDetails() {
+  const diff = {};
+  Object.keys(details).forEach(k => {
+    const orig = INITIAL_DETAILS[k];
+    if (JSON.stringify(orig) !== JSON.stringify(details[k])) diff[k] = details[k];
+  });
+  Object.keys(INITIAL_DETAILS).forEach(k => {
+    if (!details[k]) diff[k] = null;
+  });
+  setPersisted(diff);
+}
+
+// 児童メモの読み書き
+function loadStudentMemos() {
+  studentMemos = {};
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const s = localStorage.getItem(STUDENT_MEMO_KEY);
+      if (s) studentMemos = JSON.parse(s);
+    }
+  } catch(e) {}
+}
+function saveStudentMemos() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(STUDENT_MEMO_KEY, JSON.stringify(studentMemos));
+    }
+  } catch(e) {}
+}
+function getStudentMemo(weekNo, period, dayIdx) {
+  return studentMemos[`${weekNo}-${period}-${dayIdx}`] || '';
+}
+function setStudentMemo(weekNo, period, dayIdx, text) {
+  const key = `${weekNo}-${period}-${dayIdx}`;
+  const t = (text || '').trim();
+  if (t) studentMemos[key] = t;
+  else delete studentMemos[key];
+  saveStudentMemos();
+}
+
+// 教科の上書き
+function loadSubjectOverrides() {
+  subjectOverrides = {};
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const s = localStorage.getItem(SUBJECT_OVERRIDE_KEY);
+      if (s) subjectOverrides = JSON.parse(s);
+    }
+  } catch(e) {}
+}
+function saveSubjectOverrides() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(SUBJECT_OVERRIDE_KEY, JSON.stringify(subjectOverrides));
+    }
+  } catch(e) {}
+}
+// 実際に表示される教科（overrideがあればそれ、なければ元のschedule）
+function getEffectiveSubject(weekNo, period, dayIdx) {
+  const key = `${weekNo}-${period}-${dayIdx}`;
+  if (subjectOverrides[key] !== undefined) return subjectOverrides[key];
+  const w = WEEKS.find(x => x.no === weekNo);
+  if (!w) return '/';
+  return w.schedule[period-1][dayIdx];
+}
+function setSubjectOverride(weekNo, period, dayIdx, newSym) {
+  const key = `${weekNo}-${period}-${dayIdx}`;
+  const w = WEEKS.find(x => x.no === weekNo);
+  if (!w) return;
+  const originalSym = w.schedule[period-1][dayIdx];
+  if (newSym === originalSym) {
+    // 元に戻す
+    delete subjectOverrides[key];
+  } else {
+    subjectOverrides[key] = newSym;
+  }
+  saveSubjectOverrides();
+}
+
+// モード管理
+function loadMode() {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      const m = sessionStorage.getItem(MODE_KEY);
+      if (m === 'teacher') return 'teacher';
+    }
+  } catch(e) {}
+  return 'student';
+}
+function setMode(mode) {
+  currentMode = mode;
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      if (mode === 'teacher') sessionStorage.setItem(MODE_KEY, 'teacher');
+      else sessionStorage.removeItem(MODE_KEY);
+    }
+  } catch(e) {}
+  applyModeUI();
+}
+function applyModeUI() {
+  document.body.classList.toggle('mode-teacher', currentMode === 'teacher');
+  document.body.classList.toggle('mode-student', currentMode === 'student');
+  const badge = document.getElementById('mode-badge');
+  if (currentMode === 'teacher') {
+    badge.textContent = '先生用';
+    badge.classList.remove('student');
+    badge.classList.add('teacher');
+  } else {
+    badge.textContent = '児童';
+    badge.classList.remove('teacher');
+    badge.classList.add('student');
+  }
+}
+
+// ==========================================
+// ヘルパー
+// ==========================================
+function parseDate(str) { const [y,m,d]=str.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtDate(d) { return `${d.getMonth()+1}月${d.getDate()}日`; }
+function sameYMD(a,b) { return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+function today() { return new Date(); }
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function dayNames() { return ['日','月','火','水','木','金','土']; }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function findCurrentWeekIndex() {
+  const t = today();
+  for (let i=0; i<WEEKS.length; i++) {
+    const s=parseDate(WEEKS[i].start), e=parseDate(WEEKS[i].end); e.setHours(23,59,59);
+    if (t>=s&&t<=e) return i;
+  }
+  for (let i=0; i<WEEKS.length; i++) if (parseDate(WEEKS[i].start)>t) return i;
+  return 0;
+}
+function getDetail(weekNo,period,dayIdx) { return details[`${weekNo}-${period}-${dayIdx}`]; }
+function setDetail(weekNo,period,dayIdx,data) {
+  const key = `${weekNo}-${period}-${dayIdx}`;
+  if (!data || (!data.unit && !data.progN && !data.progT && !data.memo && !data.isTest)) delete details[key];
+  else details[key] = data;
+  saveDetails();
+}
+
+// 日付から週番号・曜日indexを検索
+function findSlotByDate(date) {
+  for (const w of WEEKS) {
+    const ws = parseDate(w.start);
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(ws); d.setDate(ws.getDate() + i);
+      if (sameYMD(d, date)) return { weekNo: w.no, dayIdx: i };
+    }
+  }
+  return null;
+}
+
+// 日付から、指定教科の授業コマ一覧を取得（overrideも考慮）
+function findPeriodsOfSubject(weekNo, dayIdx, subjSym) {
+  const w = WEEKS.find(x => x.no === weekNo);
+  if (!w) return [];
+  const results = [];
+  for (let p = 0; p < 6; p++) {
+    if (getEffectiveSubject(weekNo, p+1, dayIdx) === subjSym) results.push(p + 1);
+  }
+  return results;
+}
+
+// 教科名→略号変換
+function normalizeSubject(s) {
+  if (!s) return null;
+  const raw = String(s).trim();
+  if (SUBJECT_NAMES[raw]) return raw; // 既に略号
+  // 全角・半角正規化
+  const key = raw.replace(/\s+/g, '').replace(/科$/, '').replace('活動', '');
+  if (SUBJECT_ALIASES[key]) return SUBJECT_ALIASES[key];
+  if (SUBJECT_ALIASES[raw]) return SUBJECT_ALIASES[raw];
+  // 部分一致
+  for (const [name, sym] of Object.entries(SUBJECT_ALIASES)) {
+    if (raw.includes(name)) return sym;
+  }
+  return null;
+}
+
+// Excel日付（シリアル値）→ Date
+function excelDateToJSDate(v) {
+  if (v instanceof Date) return v;
+  if (typeof v === 'number') {
+    // Excelシリアル値（1900-01-01基点）
+    const epoch = new Date(1899, 11, 30).getTime();
+    return new Date(epoch + v * 86400000);
+  }
+  if (typeof v === 'string') {
+    const s = v.trim();
+    // 2026/4/6, 2026-4-6, 2026年4月6日 に対応
+    let m = s.match(/^(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})日?$/);
+    if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+    m = s.match(/^(\d{1,2})[\/\-月](\d{1,2})日?$/);
+    if (m) {
+      const yr = today().getFullYear();
+      return new Date(yr, parseInt(m[1])-1, parseInt(m[2]));
+    }
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d;
+  }
+  return null;
+}
+
+// ==========================================
+// 状態
+// ==========================================
+let state = {
+  view: 'week',
+  weekIdx: findCurrentWeekIndex(),
+  monthCursor: null,
+  termIdx: 1,
+  editing: null,
+  importCtx: null
+};
+loadDetails();
+const initWeek = WEEKS[state.weekIdx];
+state.monthCursor = new Date(parseDate(initWeek.start).getFullYear(), parseDate(initWeek.start).getMonth(), 1);
+state.termIdx = initWeek.term;
+
+// ==========================================
+// 週表示
+// ==========================================
+function renderWeek() {
+  const w = WEEKS[state.weekIdx];
+  const grid = document.getElementById('week-grid');
+  const start = parseDate(w.start);
+  const t = today();
+
+  document.getElementById('week-label').innerHTML =
+    `<span class="term">${w.term}学期 第${w.no}週</span>${fmtDate(start)} ～ ${fmtDate(parseDate(w.end))}`;
+
+  const dayDates = [];
+  for (let i=0; i<5; i++) { const d=new Date(start); d.setDate(start.getDate()+i); dayDates.push(d); }
+  const days = ['月','火','水','木','金'];
+
+  let html = '<div class="wg-cell wg-header"></div>';
+  days.forEach((dn, i) => {
+    const isToday = sameYMD(dayDates[i], t);
+    html += `<div class="wg-cell wg-header${isToday?' is-today':''}">
+      <div class="day-name">${dn}</div>
+      <div class="day-date">${dayDates[i].getMonth()+1}/${dayDates[i].getDate()}</div>
+    </div>`;
+  });
+
+  for (let p=0; p<6; p++) {
+    html += `<div class="wg-cell wg-period">${p+1}</div>`;
+    for (let d=0; d<5; d++) {
+      const sym = getEffectiveSubject(w.no, p+1, d);
+      const isToday = sameYMD(dayDates[d], t);
+      if (sym === '/') {
+        html += `<div class="wg-cell wg-subject empty${isToday?' is-today':''}"></div>`;
+      } else {
+        const detail = getDetail(w.no, p+1, d);
+        const myMemo = getStudentMemo(w.no, p+1, d);
+        html += `<div class="wg-cell wg-subject${isToday?' is-today':''}" data-week="${w.no}" data-period="${p+1}" data-day="${d}">
+          <span class="subj-tag subj-${sym}">${sym}</span>`;
+        if (detail) {
+          if (detail.unit) html += `<div class="subj-unit">${escapeHtml(detail.unit)}</div>`;
+          if (detail.progN && detail.progT) html += `<div class="subj-progress">${detail.progN}/${detail.progT}</div>`;
+          if (detail.isTest) html += `<div class="subj-test">★テスト</div>`;
+          if (detail.memo) html += `<div class="subj-memo">${escapeHtml(detail.memo)}</div>`;
+        }
+        if (myMemo) html += `<div class="subj-my-memo">${escapeHtml(myMemo)}</div>`;
+        html += `<span class="edit-hint">✎</span></div>`;
+      }
+    }
+  }
+  grid.innerHTML = html;
+
+  grid.querySelectorAll('.wg-subject:not(.empty)').forEach(el => {
+    el.addEventListener('click', () => openEditModal(parseInt(el.dataset.week), parseInt(el.dataset.period), parseInt(el.dataset.day)));
+  });
+
+  document.getElementById('week-prev').disabled = state.weekIdx === 0;
+  document.getElementById('week-next').disabled = state.weekIdx === WEEKS.length - 1;
+}
+
+// ==========================================
+// 月表示（縦リスト）
+// ==========================================
+function renderMonth() {
+  const cursor = state.monthCursor;
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
+  document.getElementById('month-label').innerHTML = `<span class="term">月</span>${year}年 ${month+1}月`;
+
+  const last = new Date(year, month+1, 0);
+  const totalDays = last.getDate();
+  const t = today();
+  const dowNames = dayNames();
+
+  const list = document.getElementById('month-list');
+  let html = '';
+
+  for (let d = 1; d <= totalDays; d++) {
+    const date = new Date(year, month, d);
+    const dow = date.getDay();
+    const isSun = dow === 0, isSat = dow === 6;
+    const isToday = sameYMD(date, t);
+
+    let matched = null;
+    WEEKS.forEach(w => {
+      const ws = parseDate(w.start);
+      for (let i=0; i<5; i++) {
+        const nd = new Date(ws); nd.setDate(ws.getDate()+i);
+        if (sameYMD(nd, date)) { matched = { w, dayIdx: i }; return; }
+      }
+    });
+
+    const classList = ['month-day'];
+    if (isSun) classList.push('is-sun');
+    if (isSat) classList.push('is-sat');
+    if (isToday) classList.push('is-today');
+
+    let periodsHtml = '';
+    let hasContent = false;
+
+    if (matched) {
+      const { w, dayIdx } = matched;
+      for (let p=0; p<6; p++) {
+        const sym = getEffectiveSubject(w.no, p+1, dayIdx);
+        if (sym === '/') continue;
+        hasContent = true;
+        const detail = getDetail(w.no, p+1, dayIdx);
+        const myMemo = getStudentMemo(w.no, p+1, dayIdx);
+        let detailHtml = '';
+        if (detail) {
+          const parts = [];
+          if (detail.unit) parts.push(`<span class="unit">${escapeHtml(detail.unit)}</span>`);
+          if (detail.progN && detail.progT) parts.push(`<span class="progress">${detail.progN}/${detail.progT}</span>`);
+          if (detail.isTest) parts.push(`<span class="test">★テスト</span>`);
+          let line = parts.join('');
+          if (detail.memo) line += `<div class="memo">${escapeHtml(detail.memo)}</div>`;
+          detailHtml = line || `<span style="color:var(--ink-soft);font-style:italic;">${SUBJECT_NAMES[sym]||sym}</span>`;
+        } else {
+          detailHtml = `<span style="color:var(--ink-soft);font-style:italic;">${SUBJECT_NAMES[sym]||sym}</span>`;
+        }
+        if (myMemo) detailHtml += `<div class="my-memo">${escapeHtml(myMemo)}</div>`;
+        periodsHtml += `<div class="md-period-row" data-week="${w.no}" data-period="${p+1}" data-day="${dayIdx}">
+          <div class="md-period-num">${p+1}限</div>
+          <span class="subj-tag md-subject-tag subj-${sym}">${sym}</span>
+          <div class="md-detail">${detailHtml}</div>
+        </div>`;
+      }
+    }
+
+    if (!hasContent) {
+      classList.push('is-holiday');
+      periodsHtml = `<div class="md-empty">予定なし(休業日・祝日など)</div>`;
+    }
+
+    html += `<div class="${classList.join(' ')}">
+      <div class="md-date-block">
+        <div class="md-date-num">${d}</div>
+        <div class="md-dow">${dowNames[dow]}曜日</div>
+        ${isToday?'<div class="md-today-badge">今日</div>':''}
+      </div>
+      <div class="md-periods">${periodsHtml}</div>
+    </div>`;
+  }
+  list.innerHTML = html;
+
+  list.querySelectorAll('.md-period-row').forEach(el => {
+    el.addEventListener('click', () => openEditModal(parseInt(el.dataset.week), parseInt(el.dataset.period), parseInt(el.dataset.day)));
+  });
+}
+
+// ==========================================
+// 学期表示
+// ==========================================
+function renderTerm() {
+  const termWeeks = WEEKS.filter(w => w.term === state.termIdx);
+  document.getElementById('term-label').innerHTML = `<span class="term">学期</span>第${state.termIdx}学期`;
+
+  const html = termWeeks.map((w) => {
+    const units = []; const seen = new Set(); let hasTest = false;
+    for (let p=0; p<6; p++) {
+      for (let d=0; d<5; d++) {
+        const sym = getEffectiveSubject(w.no, p+1, d);
+        if (sym==='/') continue;
+        const detail = getDetail(w.no, p+1, d);
+        if (!detail) continue;
+        if (detail.isTest) hasTest = true;
+        if (detail.unit) {
+          const sig = `${sym}:${detail.unit}`;
+          if (!seen.has(sig)) { seen.add(sig); units.push({ sym, unit: detail.unit }); }
+        }
+      }
+    }
+    const unitsHtml = units.slice(0,5).map(u =>
+      `<div class="twc-unit-row"><span class="chip subj-${u.sym}">${u.sym}</span><span>${escapeHtml(u.unit)}</span></div>`
+    ).join('');
+    const moreHtml = units.length>5 ? `<div style="font-size:10px;color:var(--ink-soft);margin-top:3px;">...他${units.length-5}件</div>` : '';
+    return `<div class="term-week-card" data-week-idx="${WEEKS.indexOf(w)}">
+      <div class="twc-num">第 ${w.no} 週</div>
+      <div class="twc-date">${fmtDate(parseDate(w.start))} ～ ${fmtDate(parseDate(w.end))}</div>
+      <div class="twc-units">${unitsHtml}${moreHtml}</div>
+      ${hasTest?'<div class="twc-test-badge">★ テスト・評価予定あり</div>':''}
+    </div>`;
+  }).join('');
+  document.getElementById('term-weeks').innerHTML = html;
+
+  document.querySelectorAll('.term-week-card').forEach(el => {
+    el.addEventListener('click', () => { state.weekIdx = parseInt(el.dataset.weekIdx); switchView('week'); });
+  });
+
+  document.getElementById('term-prev').disabled = state.termIdx === 1;
+  document.getElementById('term-next').disabled = state.termIdx === 3;
+}
+
+// ==========================================
+// 凡例
+// ==========================================
+function renderLegend(targetId) {
+  const order = ['国','社','算','理','音','図','家','体','英','道','総','学','委','ク','行','児'];
+  let html = '<span class="legend-title">教科</span>';
+  order.forEach(k => {
+    html += `<span class="legend-item"><span class="legend-chip subj-${k}">${k}</span>${SUBJECT_NAMES[k]}</span>`;
+  });
+  document.getElementById(targetId).innerHTML = html;
+}
+
+// ==========================================
+// 編集モーダル
+// ==========================================
+function openEditModal(weekNo, period, dayIdx) {
+  const w = WEEKS.find(x => x.no === weekNo); if (!w) return;
+  const sym = getEffectiveSubject(weekNo, period, dayIdx); if (sym === '/') return;
+  const originalSym = w.schedule[period-1][dayIdx];
+  const isOverridden = sym !== originalSym;
+  const start = parseDate(w.start);
+  const date = new Date(start); date.setDate(start.getDate() + dayIdx);
+  const dowName = ['月','火','水','木','金'][dayIdx];
+  state.editing = { weekNo, period, dayIdx, sym, originalSym };
+
+  document.getElementById('modal-title').textContent =
+    currentMode === 'teacher' ? `第${weekNo}週 ${period}限の詳細` : `${period}時間目のメモ`;
+  const tag = document.getElementById('modal-subj-tag');
+  tag.className = `subj-tag modal-subj-badge subj-${sym}`;
+  tag.textContent = `${sym} ${SUBJECT_NAMES[sym]||''}`;
+  document.getElementById('modal-datetime').textContent = `${fmtDate(date)}(${dowName}) / ${period}時間目`;
+
+  const d = getDetail(weekNo, period, dayIdx) || {};
+
+  // 教師モード用：教科プルダウン設定
+  if (currentMode === 'teacher') {
+    const sel = document.getElementById('f-subject');
+    const order = ['国','社','算','理','音','図','家','体','英','道','総','学','委','ク','行','児'];
+    sel.innerHTML = order.map(s =>
+      `<option value="${s}"${s===sym?' selected':''}>${s} ${SUBJECT_NAMES[s]}</option>`
+    ).join('');
+    const hint = document.getElementById('f-subject-hint');
+    if (isOverridden) {
+      hint.innerHTML = `※元々は「${originalSym} ${SUBJECT_NAMES[originalSym]||''}」でした。<a href="#" id="restore-subject" style="color:var(--vermillion-deep);font-weight:700;">元に戻す</a>`;
+      setTimeout(() => {
+        const rs = document.getElementById('restore-subject');
+        if (rs) rs.addEventListener('click', (e) => {
+          e.preventDefault();
+          sel.value = originalSym;
+          hint.textContent = '';
+        });
+      }, 10);
+    } else {
+      hint.textContent = '';
+    }
+  }
+
+  // 教師モード用フィールド
+  document.getElementById('f-unit').value = d.unit || '';
+  document.getElementById('f-progress-n').value = d.progN || '';
+  document.getElementById('f-progress-t').value = d.progT || '';
+  document.getElementById('f-test').checked = !!d.isTest;
+  document.getElementById('f-memo').value = d.memo || '';
+
+  // 児童モード：先生の情報を読み取り専用で表示
+  if (currentMode === 'student') {
+    const info = document.getElementById('student-readonly-info');
+    const parts = [];
+    if (d.unit) parts.push(`<div><b style="color:var(--navy-deep);">単元：</b>${escapeHtml(d.unit)}${d.progN&&d.progT?` <span style="color:var(--ink-soft);">(${d.progN}/${d.progT})</span>`:''}</div>`);
+    if (d.isTest) parts.push(`<div style="color:var(--vermillion-deep);font-weight:700;">★ テストあり</div>`);
+    if (d.memo) parts.push(`<div><b style="color:var(--navy-deep);">先生より：</b>${escapeHtml(d.memo)}</div>`);
+    if (parts.length === 0) parts.push(`<div style="color:var(--ink-soft);font-style:italic;">まだ先生からの予定情報は入っていません</div>`);
+    info.innerHTML = parts.join('');
+
+    document.getElementById('f-my-memo').value = getStudentMemo(weekNo, period, dayIdx);
+  }
+
+  document.getElementById('modal-backdrop').classList.add('active');
+  setTimeout(() => {
+    const firstInput = currentMode === 'teacher' ? 'f-unit' : 'f-my-memo';
+    document.getElementById(firstInput).focus();
+  }, 50);
+}
+function closeEditModal() {
+  document.getElementById('modal-backdrop').classList.remove('active');
+  state.editing = null;
+}
+function saveEditModal() {
+  if (!state.editing) return;
+  const { weekNo, period, dayIdx, sym: oldSym } = state.editing;
+
+  if (currentMode === 'teacher') {
+    // 教科変更のチェック
+    const newSym = document.getElementById('f-subject').value;
+    const subjectChanged = newSym !== oldSym;
+
+    if (subjectChanged) {
+      // 教科を変更 → override保存
+      setSubjectOverride(weekNo, period, dayIdx, newSym);
+      // 単元・進度・テスト・予定メモはリセット（児童メモは維持）
+      setDetail(weekNo, period, dayIdx, null);
+    } else {
+      // 教科は変わらず、他の情報のみ更新
+      const data = {};
+      const unit = document.getElementById('f-unit').value.trim();
+      const progN = parseInt(document.getElementById('f-progress-n').value) || null;
+      const progT = parseInt(document.getElementById('f-progress-t').value) || null;
+      const isTest = document.getElementById('f-test').checked;
+      const memo = document.getElementById('f-memo').value.trim();
+      if (unit) data.unit = unit;
+      if (progN) data.progN = progN;
+      if (progT) data.progT = progT;
+      if (isTest) data.isTest = true;
+      if (memo) data.memo = memo;
+      setDetail(weekNo, period, dayIdx, data);
+    }
+  } else {
+    // 児童モード：自分用メモのみ更新
+    const myMemo = document.getElementById('f-my-memo').value.trim();
+    setStudentMemo(weekNo, period, dayIdx, myMemo);
+  }
+
+  closeEditModal();
+  if (state.view === 'week') renderWeek();
+  else if (state.view === 'month') renderMonth();
+  else if (state.view === 'term') renderTerm();
+}
+function clearEditModal() {
+  if (currentMode === 'teacher') {
+    ['f-unit','f-progress-n','f-progress-t','f-memo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-test').checked = false;
+  } else {
+    document.getElementById('f-my-memo').value = '';
+  }
+}
+
+// ==========================================
+// Excel インポート
+// ==========================================
+const FIELD_OPTIONS = [
+  { value: '', label: '(使わない)' },
+  { value: 'date', label: '日付' },
+  { value: 'weekNo', label: '週番号' },
+  { value: 'dayOfWeek', label: '曜日' },
+  { value: 'period', label: '時限' },
+  { value: 'subject', label: '教科' },
+  { value: 'unit', label: '単元名' },
+  { value: 'progN', label: '回数(何回目)' },
+  { value: 'progT', label: '全体回数' },
+  { value: 'hours', label: '時間数(回数自動展開用)' },
+  { value: 'startDate', label: '開始日' },
+  { value: 'isTest', label: 'テスト(○など)' },
+  { value: 'memo', label: 'メモ' }
+];
+// 列名→フィールド の自動判定
+const AUTO_DETECT = {
+  date: ['日付','日','月日','実施日','date','year/month/day'],
+  weekNo: ['週','週番号','週no','no'],
+  dayOfWeek: ['曜日','曜'],
+  period: ['時限','校時','時間','限','限目','何限'],
+  subject: ['教科','科目','教科名'],
+  unit: ['単元','単元名','題材','学習内容','内容'],
+  progN: ['回数','時数','今回','何回目','小単元回','n'],
+  progT: ['全体','合計','全回数','全体回数','総時数','全','t'],
+  hours: ['時間数','計画時数','配当時数','予定時数'],
+  startDate: ['開始日','開始','スタート'],
+  isTest: ['テスト','評価','まとめ'],
+  memo: ['メモ','備考','注','連絡','予定']
+};
+
+function openImportModal() {
+  document.getElementById('import-backdrop').classList.add('active');
+  showImportStep(1);
+  state.importCtx = null;
+}
+function closeImportModal() {
+  document.getElementById('import-backdrop').classList.remove('active');
+  state.importCtx = null;
+}
+function showImportStep(n) {
+  ['import-step-1','import-step-2','import-step-3'].forEach((id, i) => {
+    document.getElementById(id).style.display = (i === n-1) ? '' : 'none';
+  });
+  document.getElementById('import-next').style.display = (n === 2) ? '' : 'none';
+  document.getElementById('import-apply').style.display = (n === 3) ? '' : 'none';
+  document.getElementById('import-back').style.display = (n >= 2) ? '' : 'none';
+}
+
+function autoDetectField(columnName) {
+  if (!columnName) return '';
+  const lower = String(columnName).toLowerCase().replace(/\s+/g, '');
+  for (const [field, keywords] of Object.entries(AUTO_DETECT)) {
+    for (const kw of keywords) {
+      if (lower.includes(kw.toLowerCase())) return field;
+    }
+  }
+  return '';
+}
+
+function readExcelFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: 'array', cellDates: true });
+        resolve(wb);
+      } catch(err) { reject(err); }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function loadSheet(wb, sheetName) {
+  const ws = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+  // 最初の非空行をヘッダーとして使う
+  let headerIdx = 0;
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i].some(v => String(v).trim())) { headerIdx = i; break; }
+  }
+  const headers = rows[headerIdx].map(h => String(h).trim());
+  const dataRows = rows.slice(headerIdx + 1).filter(r => r.some(v => String(v).trim()));
+  return { headers, rows: dataRows };
+}
+
+function handleFileSelected(file) {
+  if (!file) return;
+  readExcelFile(file).then(wb => {
+    // R8週案形式（「週プロ」シートが複数ある）を自動検出
+    const sheetNames = wb.SheetNames;
+    const weekProSheets = sheetNames.filter(n => n.startsWith('週プロ'));
+    if (weekProSheets.length >= 5) {
+      // R8週案形式として処理
+      handleR8Format(wb, weekProSheets);
+      return;
+    }
+
+    state.importCtx = { wb, file, sheetName: sheetNames[0], headers:[], rows:[], mapping:{} };
+
+    const sel = document.getElementById('sheet-selector');
+    if (sheetNames.length > 1) {
+      sel.innerHTML = sheetNames.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      document.getElementById('sheet-selector-wrap').style.display = '';
+    } else {
+      document.getElementById('sheet-selector-wrap').style.display = 'none';
+    }
+
+    loadSelectedSheet();
+    showImportStep(2);
+  }).catch(err => {
+    alert('ファイルの読み込みに失敗しました: ' + err.message);
+  });
+}
+
+// R8週案形式（週プロシート群）の専用パーサー
+function handleR8Format(wb, weekProSheets) {
+  const records = [];
+  const errors = [];
+  const eventsByWeek = {}; // weekNo → [行事テキスト]
+
+  // 各週プロシートの位置関係：
+  // 教科記号行: 9, 15, 21, 29, 38, 44 (1〜6限)
+  // 単元名行:   11,17, 23, 31, 40, 46 (教科記号+2,+2,+2,+2,+2,+2)
+  // 月〜金の列: C=3, J=10, Q=17, X=24, AE=31 (1インデックスで 4,11,18,25,32)
+  // ※ XLSX.utils.sheet_to_json では array形式で 0始まり配列
+  // セルの列番号（1始まり）→ 配列インデックス（0始まり）なので -1
+  const PERIOD_SUBJECT_ROWS = [9, 15, 21, 29, 38, 44]; // Excel上の行番号
+  const PERIOD_UNIT_ROWS    = [11, 17, 23, 31, 40, 46];
+  const DAY_SUBJECT_COLS = [4, 11, 18, 25, 32]; // 月火水木金 教科列（「（」の右）
+  const DAY_UNIT_COLS    = [3, 10, 17, 24, 31]; // 単元名は「（」の同じ列
+  // SheetJS の A1表記は useful
+  // => openpyxl方式で cellに getCellValue(r,c)
+
+  function getCell(ws, r, c) {
+    const addr = XLSX.utils.encode_cell({ r: r-1, c: c-1 });
+    const cell = ws[addr];
+    if (!cell) return null;
+    return cell.v !== undefined ? cell.v : cell.w;
+  }
+
+  weekProSheets.forEach((sheetName) => {
+    const ws = wb.Sheets[sheetName];
+    if (!ws) return;
+
+    // 週番号を第n週から取得: B列1行目="第", C列1行目=1, L列1行目="第", M列1行目=週番号
+    // 実データでは (1,12) に週番号が入る (n=1 or シート "週プロ"の最初 は第1週)
+    let weekNo = getCell(ws, 1, 12);
+    if (typeof weekNo !== 'number') {
+      // シート名から推定: "週プロ" → 1週目, "週プロ (2)" → 2週目
+      const m = sheetName.match(/\((\d+)\)/);
+      weekNo = m ? parseInt(m[1]) : 1;
+    }
+
+    // 行事欄 (5行目の C列以降)
+    const eventCell = getCell(ws, 5, 3);
+    if (eventCell && String(eventCell).trim() && String(eventCell).trim() !== '行事') {
+      const text = String(eventCell).trim();
+      if (!text.includes('行事')) { // ラベル「行事」自体はスキップ
+        eventsByWeek[weekNo] = eventsByWeek[weekNo] || [];
+        eventsByWeek[weekNo].push(text);
+      }
+    }
+    // 5行目のさらに右の列も確認（連絡事項の近く）
+    for (let col = 3; col < 45; col += 7) {
+      const v = getCell(ws, 5, col);
+      if (v && String(v).trim() && String(v).trim() !== '行事' && !eventsByWeek[weekNo]?.includes(String(v).trim())) {
+        eventsByWeek[weekNo] = eventsByWeek[weekNo] || [];
+        eventsByWeek[weekNo].push(String(v).trim());
+      }
+    }
+
+    // 連絡事項 (50行目)
+    const memoBase = getCell(ws, 50, 3);
+    const weekMemo = memoBase ? String(memoBase).trim() : '';
+
+    // 6限 × 5日分ループ
+    for (let p = 0; p < 6; p++) {
+      for (let d = 0; d < 5; d++) {
+        const sym = getCell(ws, PERIOD_SUBJECT_ROWS[p], DAY_SUBJECT_COLS[d]);
+        if (!sym || String(sym).trim() === '' || String(sym).trim() === '／') continue;
+        const symClean = String(sym).trim();
+        // 教科記号として認識できる1文字のみ許可
+        if (!SUBJECT_NAMES[symClean]) continue;
+
+        // 単元名セル
+        const unitCell = getCell(ws, PERIOD_UNIT_ROWS[p], DAY_UNIT_COLS[d]);
+        let unitText = unitCell ? String(unitCell).trim() : '';
+
+        // 改行や全角スペースを整理
+        unitText = unitText.replace(/\s+/g, ' ').trim();
+
+        // 進度を抽出: 「XXXX Y／Z」 or 「XXXX Y/Z」 のパターン
+        let progN = null, progT = null, unit = unitText;
+        const progMatch = unitText.match(/([\d０-９]+)\s*[／/]\s*([\d０-９]+)\s*$/);
+        if (progMatch) {
+          const zen2han = s => s.replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
+          progN = parseInt(zen2han(progMatch[1]));
+          progT = parseInt(zen2han(progMatch[2]));
+          unit = unitText.substring(0, progMatch.index).trim();
+        }
+
+        // 「山田先生」など担当教師名の記載はメモ扱い
+        const isTeacherNote = /先生/.test(unit) && unit.length < 30;
+        let memo = '';
+        if (isTeacherNote && !progMatch) {
+          memo = unit;
+          unit = '';
+        }
+
+        records.push({
+          weekNo, period: p+1, dayIdx: d, sym: symClean,
+          unit: unit || undefined,
+          progN: progN || undefined,
+          progT: progT || undefined,
+          memo: memo || undefined,
+          invalid: false
+        });
+      }
+    }
+  });
+
+  // 確認ダイアログで表示
+  const valid = records.filter(r => !r.invalid);
+  const summary = `R8週案形式のExcelを検出しました。\n\n` +
+    `・${weekProSheets.length}週分のデータを読み込み\n` +
+    `・${valid.length}件の授業情報\n\n` +
+    `このデータを取り込みます。既存の入力は上書きされます。よろしいですか？`;
+
+  if (!confirm(summary)) {
+    return;
+  }
+
+  // 適用
+  let applied = 0;
+  valid.forEach(r => {
+    const key = `${r.weekNo}-${r.period}-${r.dayIdx}`;
+    // 元の教科と違う場合はoverride
+    const w = WEEKS.find(x => x.no === r.weekNo);
+    if (w) {
+      const originalSym = w.schedule[r.period-1][r.dayIdx];
+      if (originalSym !== r.sym) {
+        setSubjectOverride(r.weekNo, r.period, r.dayIdx, r.sym);
+      }
+    }
+    // 詳細データ
+    const data = {};
+    if (r.unit) data.unit = r.unit;
+    if (r.progN) data.progN = r.progN;
+    if (r.progT) data.progT = r.progT;
+    if (r.memo) data.memo = r.memo;
+    if (Object.keys(data).length) {
+      details[key] = data;
+      applied++;
+    }
+  });
+  saveDetails();
+  saveSubjectOverrides();
+
+  closeImportModal();
+  alert(`取込完了：${applied}件の授業情報を反映しました。`);
+
+  if (state.view === 'week') renderWeek();
+  else if (state.view === 'month') renderMonth();
+  else if (state.view === 'term') renderTerm();
+}
+
+function loadSelectedSheet() {
+  const ctx = state.importCtx; if (!ctx) return;
+  const sheetName = ctx.sheetName;
+  const { headers, rows } = loadSheet(ctx.wb, sheetName);
+  ctx.headers = headers;
+  ctx.rows = rows;
+  renderMapping();
+}
+
+function renderMapping() {
+  const ctx = state.importCtx;
+  const tbody = document.getElementById('mapping-rows');
+  let html = '';
+  ctx.headers.forEach((h, i) => {
+    if (!h) return;
+    // サンプル値: この列の最初の非空値
+    let sample = '';
+    for (const r of ctx.rows) {
+      if (r[i] && String(r[i]).trim()) { sample = String(r[i]); break; }
+    }
+    const auto = autoDetectField(h);
+    ctx.mapping[i] = auto;
+    const opts = FIELD_OPTIONS.map(o =>
+      `<option value="${o.value}"${o.value===auto?' selected':''}>${o.label}</option>`
+    ).join('');
+    html += `<tr>
+      <td class="col-name">${escapeHtml(h)}</td>
+      <td class="col-sample">${escapeHtml(sample.slice(0,40))}</td>
+      <td><select data-col="${i}">${opts}</select></td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+  tbody.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      ctx.mapping[parseInt(e.target.dataset.col)] = e.target.value;
+    });
+  });
+}
+
+// マッピングに基づき、各行を正規化されたレコードに変換
+function processRows() {
+  const ctx = state.importCtx;
+  const fieldToCol = {};
+  Object.entries(ctx.mapping).forEach(([col, field]) => {
+    if (field) fieldToCol[field] = parseInt(col);
+  });
+
+  const results = []; // {date, period, sym, unit, progN, progT, isTest, memo, invalid, reason}
+  const DAY_OF_WEEK_MAP = {'月':0,'火':1,'水':2,'木':3,'金':4,'月曜':0,'火曜':1,'水曜':2,'木曜':3,'金曜':4,'月曜日':0,'火曜日':1,'水曜日':2,'木曜日':3,'金曜日':4};
+
+  ctx.rows.forEach(row => {
+    const get = f => fieldToCol[f]!==undefined ? row[fieldToCol[f]] : undefined;
+    const subject = normalizeSubject(get('subject'));
+    const unit = get('unit') ? String(get('unit')).trim() : '';
+    const memo = get('memo') ? String(get('memo')).trim() : '';
+    const progNRaw = get('progN'), progTRaw = get('progT');
+    const progN = progNRaw ? parseInt(progNRaw) : null;
+    const progT = progTRaw ? parseInt(progTRaw) : null;
+    const isTestRaw = get('isTest');
+    const isTest = isTestRaw && ['○','◯','✓','✔','yes','y','true','1','テスト','評価','はい'].includes(String(isTestRaw).trim().toLowerCase());
+
+    // ケースA: 単元ごとに行 (startDate + hours) → 複数の日付に自動展開
+    const startDateRaw = get('startDate');
+    const hoursRaw = get('hours');
+    if (startDateRaw && hoursRaw && subject) {
+      const startDate = excelDateToJSDate(startDateRaw);
+      const hours = parseInt(hoursRaw);
+      if (!startDate || !hours) {
+        results.push({invalid:true, reason:'開始日または時間数が不正', row});
+        return;
+      }
+      // 開始日以降、指定教科の授業をhours回分に割り当て
+      let assigned = 0;
+      let cursor = new Date(startDate);
+      const maxDays = 365;
+      for (let i = 0; i < maxDays && assigned < hours; i++) {
+        const slot = findSlotByDate(cursor);
+        if (slot) {
+          const periods = findPeriodsOfSubject(slot.weekNo, slot.dayIdx, subject);
+          for (const p of periods) {
+            if (assigned >= hours) break;
+            assigned++;
+            results.push({
+              date: new Date(cursor), period: p, sym: subject,
+              unit, progN: assigned, progT: hours,
+              isTest: (assigned === hours && isTest) || undefined,
+              memo: memo || undefined
+            });
+          }
+        }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      if (assigned === 0) {
+        results.push({invalid:true, reason:`${subject}の授業が見つからない`, row});
+      }
+      return;
+    }
+
+    // ケースB/C: 日付 or 週番号+曜日 で特定
+    let date = null, weekNo = null, dayIdx = null;
+    const dateRaw = get('date');
+    if (dateRaw) {
+      date = excelDateToJSDate(dateRaw);
+      if (date) {
+        const slot = findSlotByDate(date);
+        if (slot) { weekNo = slot.weekNo; dayIdx = slot.dayIdx; }
+      }
+    }
+    if (weekNo === null) {
+      const wnRaw = get('weekNo');
+      const dowRaw = get('dayOfWeek');
+      if (wnRaw) weekNo = parseInt(wnRaw);
+      if (dowRaw) {
+        const k = String(dowRaw).trim();
+        if (DAY_OF_WEEK_MAP[k] !== undefined) dayIdx = DAY_OF_WEEK_MAP[k];
+        else if (!isNaN(parseInt(k))) dayIdx = parseInt(k);
+      }
+      if (weekNo !== null && dayIdx !== null) {
+        const w = WEEKS.find(x => x.no === weekNo);
+        if (w) { const d = new Date(parseDate(w.start)); d.setDate(d.getDate() + dayIdx); date = d; }
+      }
+    }
+
+    if (!date || weekNo === null || dayIdx === null) {
+      results.push({invalid:true, reason:'日付・週を特定できず', row});
+      return;
+    }
+
+    // 時限の指定
+    const periodRaw = get('period');
+    let periods = [];
+    if (periodRaw && !isNaN(parseInt(periodRaw))) {
+      periods = [parseInt(periodRaw)];
+    } else if (subject) {
+      // 時限なし→その日のその教科の全コマ
+      periods = findPeriodsOfSubject(weekNo, dayIdx, subject);
+      if (periods.length === 0) {
+        results.push({invalid:true, reason:`その日に${subject}の授業がない`, row});
+        return;
+      }
+    } else {
+      results.push({invalid:true, reason:'時限・教科のどちらか必要', row});
+      return;
+    }
+
+    // 教科未指定なら、週データから取得
+    periods.forEach(p => {
+      const actualSym = getEffectiveSubject(weekNo, p, dayIdx);
+      const sym = subject || (actualSym !== '/' ? actualSym : null);
+      if (!sym) {
+        results.push({invalid:true, reason:'教科が特定できず', row});
+        return;
+      }
+      if (actualSym !== '/' && actualSym !== sym && subject) {
+        // 教科が一致しない場合も登録するが警告
+      }
+      results.push({
+        date, weekNo, dayIdx, period: p, sym,
+        unit: unit || undefined, progN: progN||undefined, progT: progT||undefined,
+        isTest: isTest || undefined, memo: memo || undefined
+      });
+    });
+  });
+
+  return results;
+}
+
+function showPreview() {
+  const records = processRows();
+  state.importCtx.records = records;
+  const valid = records.filter(r => !r.invalid);
+  const invalid = records.filter(r => r.invalid);
+
+  document.getElementById('import-summary').innerHTML =
+    `<b>取込可能: ${valid.length}件</b>${invalid.length>0?` / <span class="warn">エラー: ${invalid.length}件(スキップ)</span>`:''}`;
+
+  const preview = document.getElementById('preview-list');
+  let html = '';
+  let count = 0;
+  for (const r of records) {
+    if (count >= 50) break;
+    if (r.invalid) {
+      html += `<div class="preview-item invalid">
+        <span>―</span><span>―</span>
+        <span>エラー: ${escapeHtml(r.reason)}</span>
+        <span></span>
+      </div>`;
+    } else {
+      const d = r.date;
+      const detail = [r.unit, r.isTest?'★テスト':'', r.memo].filter(x=>x).join(' / ');
+      html += `<div class="preview-item">
+        <span class="preview-date">${d.getMonth()+1}/${d.getDate()}</span>
+        <span class="subj-tag subj-${r.sym}" style="font-size:10px;padding:1px 6px;align-self:flex-start;">${r.sym}</span>
+        <span>${r.period}限 ${escapeHtml(detail)}</span>
+        <span class="preview-prog">${r.progN&&r.progT?`${r.progN}/${r.progT}`:''}</span>
+      </div>`;
+    }
+    count++;
+  }
+  if (records.length > 50) html += `<div class="preview-item"><span></span><span></span><span>...他${records.length-50}件</span><span></span></div>`;
+  preview.innerHTML = html;
+  showImportStep(3);
+}
+
+function applyImport() {
+  const ctx = state.importCtx;
+  const overwrite = document.getElementById('f-overwrite').checked;
+  const valid = ctx.records.filter(r => !r.invalid);
+  let applied = 0, skipped = 0;
+
+  valid.forEach(r => {
+    const key = `${r.weekNo}-${r.period}-${r.dayIdx}`;
+    const existing = details[key];
+    if (existing && !overwrite) {
+      // 空のフィールドにのみ追加
+      const merged = { ...existing };
+      if (r.unit && !merged.unit) merged.unit = r.unit;
+      if (r.progN && !merged.progN) merged.progN = r.progN;
+      if (r.progT && !merged.progT) merged.progT = r.progT;
+      if (r.isTest && !merged.isTest) merged.isTest = true;
+      if (r.memo && !merged.memo) merged.memo = r.memo;
+      if (JSON.stringify(merged) !== JSON.stringify(existing)) {
+        details[key] = merged; applied++;
+      } else skipped++;
+    } else {
+      const data = {};
+      if (r.unit) data.unit = r.unit;
+      if (r.progN) data.progN = r.progN;
+      if (r.progT) data.progT = r.progT;
+      if (r.isTest) data.isTest = true;
+      if (r.memo) data.memo = r.memo;
+      if (Object.keys(data).length) { details[key] = data; applied++; } else skipped++;
+    }
+  });
+
+  saveDetails();
+  closeImportModal();
+  alert(`取込完了：${applied}件を反映しました${skipped>0?`(${skipped}件スキップ)`:''}`);
+
+  if (state.view === 'week') renderWeek();
+  else if (state.view === 'month') renderMonth();
+  else if (state.view === 'term') renderTerm();
+}
+
+function downloadTemplate() {
+  const sample = [
+    ['日付','時限','教科','単元名','回数','全体回数','テスト','メモ'],
+    ['2026/4/6', '3', '国語', 'つないで、つないで、一つのお話', 1, 1, '', ''],
+    ['2026/4/6', '3', '算数', 'つり合いのとれた図形を調べよう', 1, 13, '', ''],
+    ['2026/4/13', '1', '算数', 'つり合いのとれた図形を調べよう', 2, 13, '', ''],
+    ['2026/4/14', '2', '国語', '帰り道', 1, 5, '', ''],
+    ['2026/4/20', '4', '社会', '日本国憲法', 1, 8, '○', '導入'],
+    ['', '', '', '', '', '', '', ''],
+    ['【代替形式1】日付と教科だけ(その日の該当教科全コマに適用)', '', '', '', '', '', '', ''],
+    ['日付','','教科','単元名','','','',''],
+    ['2026/5/11', '', '国語', 'イースター島', '', '', '', ''],
+    ['', '', '', '', '', '', '', ''],
+    ['【代替形式2】開始日+時間数(単元を自動展開)', '', '', '', '', '', '', ''],
+    ['開始日','','教科','単元名','','','時間数',''],
+    ['2026/5/11', '', '理科', '植物の成長と日光', '', '', 6, '']
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(sample);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '予定入力');
+  XLSX.writeFile(wb, '予定表テンプレート.xlsx');
+}
+
+// ==========================================
+// ビュー切替
+// ==========================================
+function switchView(v) {
+  state.view = v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+  document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === 'view-' + v));
+  if (v === 'week') renderWeek();
+  if (v === 'month') renderMonth();
+  if (v === 'term') renderTerm();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ==========================================
+// イベント登録
+// ==========================================
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchView(t.dataset.view)));
+document.getElementById('week-prev').addEventListener('click', () => { if (state.weekIdx>0) { state.weekIdx--; renderWeek(); } });
+document.getElementById('week-next').addEventListener('click', () => { if (state.weekIdx<WEEKS.length-1) { state.weekIdx++; renderWeek(); } });
+document.getElementById('month-prev').addEventListener('click', () => { state.monthCursor = new Date(state.monthCursor.getFullYear(), state.monthCursor.getMonth()-1, 1); renderMonth(); });
+document.getElementById('month-next').addEventListener('click', () => { state.monthCursor = new Date(state.monthCursor.getFullYear(), state.monthCursor.getMonth()+1, 1); renderMonth(); });
+document.getElementById('term-prev').addEventListener('click', () => { if (state.termIdx>1) { state.termIdx--; renderTerm(); } });
+document.getElementById('term-next').addEventListener('click', () => { if (state.termIdx<3) { state.termIdx++; renderTerm(); } });
+document.getElementById('btn-today').addEventListener('click', () => {
+  state.weekIdx = findCurrentWeekIndex();
+  const w = WEEKS[state.weekIdx];
+  state.monthCursor = new Date(parseDate(w.start).getFullYear(), parseDate(w.start).getMonth(), 1);
+  state.termIdx = w.term;
+  switchView('week');
+});
+document.getElementById('btn-print').addEventListener('click', () => window.print());
+document.getElementById('btn-save').addEventListener('click', () => {
+  const el = document.getElementById('capture-area');
+  const btn = document.getElementById('btn-save');
+  const orig = btn.textContent;
+  btn.textContent = '保存中...';
+  html2canvas(el, { backgroundColor: '#f5efe1', scale: 2 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `予定表_${state.view}_${ymd(today())}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = orig;
+  }).catch(() => { btn.textContent = orig; alert('画像保存に失敗しました'); });
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (confirm('編集した単元・メモ・教科変更を全て初期値に戻します。よろしいですか？')) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SUBJECT_OVERRIDE_KEY);
+      }
+    } catch(e) {}
+    loadDetails();
+    loadSubjectOverrides();
+    if (state.view === 'week') renderWeek();
+    else if (state.view === 'month') renderMonth();
+    else if (state.view === 'term') renderTerm();
+  }
+});
+
+// 編集モーダル
+document.getElementById('modal-close').addEventListener('click', closeEditModal);
+document.getElementById('modal-cancel').addEventListener('click', closeEditModal);
+document.getElementById('modal-save').addEventListener('click', saveEditModal);
+document.getElementById('modal-clear').addEventListener('click', clearEditModal);
+document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-backdrop') closeEditModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state.editing) closeEditModal();
+  if (e.key === 'Enter' && e.ctrlKey && state.editing) saveEditModal();
+});
+
+// インポートモーダル
+document.getElementById('btn-import').addEventListener('click', openImportModal);
+document.getElementById('import-close').addEventListener('click', closeImportModal);
+document.getElementById('import-cancel').addEventListener('click', closeImportModal);
+document.getElementById('import-backdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'import-backdrop') closeImportModal();
+});
+document.getElementById('btn-download-template').addEventListener('click', downloadTemplate);
+
+const dz = document.getElementById('drop-zone');
+const fi = document.getElementById('file-input');
+dz.addEventListener('click', () => fi.click());
+fi.addEventListener('change', (e) => {
+  if (e.target.files.length) handleFileSelected(e.target.files[0]);
+});
+dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragging'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragging'));
+dz.addEventListener('drop', (e) => {
+  e.preventDefault(); dz.classList.remove('dragging');
+  if (e.dataTransfer.files.length) handleFileSelected(e.dataTransfer.files[0]);
+});
+document.getElementById('sheet-selector').addEventListener('change', (e) => {
+  if (state.importCtx) { state.importCtx.sheetName = e.target.value; loadSelectedSheet(); }
+});
+document.getElementById('import-next').addEventListener('click', showPreview);
+document.getElementById('import-apply').addEventListener('click', applyImport);
+document.getElementById('import-back').addEventListener('click', () => {
+  const step1Visible = document.getElementById('import-step-1').style.display !== 'none';
+  const step2Visible = document.getElementById('import-step-2').style.display !== 'none';
+  const step3Visible = document.getElementById('import-step-3').style.display !== 'none';
+  if (step3Visible) showImportStep(2);
+  else if (step2Visible) showImportStep(1);
+});
+
+// ログイン・モード切替
+function openLoginModal() {
+  document.getElementById('login-backdrop').classList.add('active');
+  document.getElementById('pw-input').value = '';
+  document.getElementById('login-error').textContent = '';
+  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+}
+function closeLoginModal() {
+  document.getElementById('login-backdrop').classList.remove('active');
+}
+function submitLogin() {
+  const pw = document.getElementById('pw-input').value.trim();
+  if (pw === TEACHER_PASSWORD) {
+    setMode('teacher');
+    closeLoginModal();
+    if (state.view === 'week') renderWeek();
+    else if (state.view === 'month') renderMonth();
+    else if (state.view === 'term') renderTerm();
+  } else {
+    document.getElementById('login-error').textContent = 'パスワードが違います';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+function logout() {
+  setMode('student');
+  if (state.view === 'week') renderWeek();
+  else if (state.view === 'month') renderMonth();
+  else if (state.view === 'term') renderTerm();
+}
+
+document.getElementById('btn-login').addEventListener('click', openLoginModal);
+document.getElementById('btn-logout').addEventListener('click', logout);
+document.getElementById('login-close').addEventListener('click', closeLoginModal);
+document.getElementById('login-cancel').addEventListener('click', closeLoginModal);
+document.getElementById('login-submit').addEventListener('click', submitLogin);
+document.getElementById('login-backdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'login-backdrop') closeLoginModal();
+});
+document.getElementById('pw-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitLogin();
+});
+
+// ==========================================
+// 初期描画
+// ==========================================
+loadStudentMemos();
+loadSubjectOverrides();
+currentMode = loadMode();
+applyModeUI();
+renderLegend('legend-week');
+switchView('week');
+</script>
+</body>
+</html>
