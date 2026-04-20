@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>線対称・点対称（東書14時間）— 探究ポータル</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --font:'Zen Maru Gothic','Hiragino Maru Gothic ProN',sans-serif;
+  --bg:#0B0E1A;--card:#121829;--card2:#161D30;--border:#1E2A42;--border2:#243050;
+  --muted:#7B8FAD;--text:#E8EDF8;
+  --teal:#00D4AA;--cyan:#3EC8E8;--violet:#7C5CFC;--pink:#E84090;
+  --amber:#F0A030;--green:#30D878;--red:#E8340A;--gold:#FFD700;
+  --grad1:linear-gradient(135deg,#00D4AA,#3EC8E8);
+  --grad2:linear-gradient(135deg,#7C5CFC,#E84090);
+  --grad3:linear-gradient(135deg,#FFD700,#F0A030);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.screen{display:none;min-height:100vh;}.screen.active{display:block;}
+
+/* ── MODE SWITCH ── */
+.mode-switch{position:fixed;top:10px;right:10px;z-index:1000;display:flex;background:rgba(11,14,26,0.92);border:1px solid var(--border);border-radius:100px;overflow:hidden;backdrop-filter:blur(12px);}
+.mode-btn{padding:7px 16px;font-size:12px;font-weight:900;border:none;cursor:pointer;font-family:var(--font);background:transparent;color:var(--muted);transition:all .25s;}
+.mode-btn.active{background:var(--teal);color:#0B0E1A;}
+
+/* ── AMBIENT ── */
+.glow-s{position:fixed;inset:0;pointer-events:none;z-index:0;
+background:radial-gradient(ellipse 55% 35% at 75% 5%,rgba(0,212,170,.08) 0%,transparent 70%),
+radial-gradient(ellipse 45% 45% at 15% 85%,rgba(124,92,252,.06) 0%,transparent 70%);}
+.glow-t{position:fixed;inset:0;pointer-events:none;z-index:0;
+background:radial-gradient(ellipse 55% 40% at 25% 15%,rgba(62,200,232,.07) 0%,transparent 70%);}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;}
+.card-t{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:14px 18px;}
+
+/* ── SETUP ── */
+#setup{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.setup-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 32px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;}
+.setup-label{display:block;font-size:11px;color:var(--muted);font-weight:900;margin-bottom:6px;letter-spacing:.05em;}
+.setup-input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font);font-size:15px;font-weight:700;padding:11px 14px;outline:none;transition:border-color .2s;}
+.setup-input:focus{border-color:var(--teal);}
+.setup-input::placeholder{color:var(--muted);}
+.setup-error{font-size:12px;color:var(--pink);font-weight:700;text-align:center;}
+.start-btn{background:var(--grad1);color:#0B0E1A;border:none;border-radius:100px;padding:13px 0;font-size:15px;font-weight:900;cursor:pointer;font-family:var(--font);box-shadow:0 6px 22px rgba(0,212,170,.3);transition:opacity .2s;}
+.start-btn:disabled{opacity:.5;cursor:not-allowed;}
+.h1-grad{font-size:clamp(22px,5vw,34px);line-height:1.3;font-weight:900;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;}
+.tag-box{font-size:12px;color:var(--cyan);font-weight:700;background:rgba(62,200,232,.08);border:1px solid rgba(62,200,232,.2);border-radius:10px;padding:7px 18px;display:inline-block;margin-top:10px;}
+
+/* ── PROFILE BAR ── */
+.profile-bar{max-width:860px;margin:0 auto 12px;padding:0 12px;}
+.progress-track{width:130px;height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:100px;background:var(--grad1);transition:width .5s;}
+.sync-badge{font-size:11px;color:var(--green);font-weight:700;}
+.sync-badge.saving{color:var(--cyan);}
+.change-btn{font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:100px;padding:4px 12px;cursor:pointer;font-family:var(--font);}
+
+/* ── RUBRIC BAR ── */
+.rubric-wrap{max-width:860px;margin:0 auto 12px;padding:0 12px;}
+.rubric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.rubric-item{border-radius:12px;padding:12px 10px;text-align:center;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);transition:all .3s;cursor:pointer;position:relative;}
+.rubric-item.active{border-color:rgba(0,212,170,.4);background:rgba(0,212,170,.08);}
+.rubric-icon{font-size:22px;margin-bottom:4px;}
+.rubric-name{font-size:11px;font-weight:900;color:var(--teal);}
+.rubric-desc{font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px;}
+.rubric-detail{display:none;margin-top:8px;text-align:left;}
+.rubric-item.active .rubric-detail{display:block;}
+.rubric-grade{font-size:10px;line-height:1.6;padding:5px 8px;border-radius:8px;margin-bottom:4px;}
+.rubric-grade-a{background:rgba(0,212,170,.1);color:var(--teal);}
+.rubric-grade-b{background:rgba(240,160,48,.1);color:var(--amber);}
+.rubric-grade-c{background:rgba(232,64,144,.1);color:var(--pink);}
+
+/* ── LESSON GRID ── */
+.lesson-grid{max-width:860px;margin:0 auto;padding:0 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.lesson-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:16px;position:relative;transition:all .3s;}
+.lesson-card.done{box-shadow:0 0 20px rgba(0,212,170,.15);}
+.lc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.lc-hour{font-size:11px;font-weight:900;background:rgba(255,255,255,.06);padding:3px 10px;border-radius:100px;}
+.lc-stage{font-size:10px;font-weight:900;color:#fff;padding:3px 10px;border-radius:100px;}
+.lc-title{font-size:15px;font-weight:900;margin-bottom:6px;line-height:1.4;}
+.lc-goal{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.check-list{display:flex;flex-direction:column;gap:6px;}
+.check-item{display:flex;gap:8px;align-items:flex-start;padding:7px 9px;border-radius:9px;cursor:pointer;transition:background .15s;}
+.check-box{width:18px;height:18px;border-radius:5px;flex-shrink:0;margin-top:1px;border:2px solid rgba(255,255,255,.15);background:transparent;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:900;transition:all .2s;}
+.check-item.checked .check-box{transform:scale(1.1);}
+.check-text{font-size:11px;color:var(--muted);line-height:1.6;flex:1;}
+.check-item.checked .check-text{color:var(--text);}
+.lc-bar-wrap{margin-top:12px;display:flex;align-items:center;gap:8px;}
+.lc-bar-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;}
+.lc-bar-fill{height:100%;border-radius:100px;transition:width .4s;}
+.lc-pct{font-size:12px;font-weight:900;min-width:32px;}
+.done-star{position:absolute;top:12px;right:12px;font-size:20px;}
+
+/* ── SELF-EVAL ── */
+.self-eval-wrap{max-width:860px;margin:12px auto 0;padding:0 12px;}
+.eval-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.eval-col-title{font-size:11px;font-weight:900;margin-bottom:8px;text-align:center;padding:4px 8px;border-radius:100px;}
+.eval-option{display:flex;gap:6px;align-items:flex-start;padding:8px 10px;border-radius:10px;cursor:pointer;transition:all .2s;border:1px solid transparent;font-size:10px;line-height:1.5;color:var(--muted);}
+.eval-option:hover{background:rgba(255,255,255,.03);}
+.eval-option.selected{border-color:var(--teal);background:rgba(0,212,170,.06);color:var(--text);}
+.eval-radio{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.15);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.eval-option.selected .eval-radio{border-color:var(--teal);background:var(--teal);}
+.eval-option.selected .eval-radio::after{content:'';width:6px;height:6px;border-radius:50%;background:#0B0E1A;}
+
+/* ── MEMO ── */
+.memo-wrap{max-width:860px;margin:12px auto 0;padding:0 12px;}
+.memo-area{width:100%;min-height:80px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font);font-size:13px;padding:10px 14px;resize:vertical;outline:none;line-height:1.7;transition:border-color .2s;}
+.memo-area:focus{border-color:var(--teal);}
+.memo-area::placeholder{color:var(--muted);}
+
+/* ── TEACHER COMMENT (student side) ── */
+.tc-badge{background:linear-gradient(135deg,#FFD700,#F0A030);color:#0B0E1A;font-size:9px;font-weight:900;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:3px;box-shadow:0 2px 8px rgba(255,215,0,.3);}
+.tc-box{margin-top:6px;background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(240,160,48,.05));border:1px solid rgba(255,215,0,.3);border-left:3px solid var(--gold);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+.tc-box-title{font-size:9px;font-weight:900;color:var(--gold);margin-bottom:4px;display:flex;align-items:center;gap:4px;letter-spacing:.05em;}
+
+/* ── TEACHER ── */
+.t-header{padding:20px 20px 12px;border-bottom:1px solid rgba(255,255,255,.06);position:relative;z-index:1;}
+.t-header-inner{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.t-h2{font-size:clamp(16px,3vw,24px);font-weight:900;background:linear-gradient(135deg,#B8D8FF,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.refresh-btn{background:rgba(62,200,232,.12);border:1px solid rgba(62,200,232,.28);color:var(--cyan);border-radius:100px;padding:7px 16px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);}
+.t-inner{max-width:1060px;margin:0 auto;padding:16px 16px 0;position:relative;z-index:1;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px;}
+.stat-val{font-size:26px;font-weight:900;}.stat-lbl{font-size:11px;color:#5A7090;font-weight:900;margin-bottom:6px;}
+.bar-chart{display:flex;gap:4px;align-items:flex-end;}
+.bar-col{flex:1;text-align:center;min-width:0;}.bar-label{font-size:9px;color:#5A7090;font-weight:700;margin-bottom:4px;white-space:nowrap;}
+.bar-track{height:56px;background:rgba(255,255,255,.04);border-radius:5px;overflow:hidden;display:flex;align-items:flex-end;}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;transition:height .6s;}.bar-pct{font-size:10px;font-weight:900;margin-top:3px;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+.toggle-group{display:flex;background:var(--card2);border:1px solid var(--border2);border-radius:100px;overflow:hidden;}
+.toggle-btn{padding:7px 14px;font-size:12px;font-weight:900;border:none;cursor:pointer;font-family:var(--font);background:transparent;color:#5A7090;transition:all .2s;}
+.toggle-btn.active{background:var(--cyan);color:#0B1520;}
+.filter-btn{padding:6px 12px;font-size:12px;font-weight:900;border:1px solid var(--border2);border-radius:100px;cursor:pointer;font-family:var(--font);background:transparent;color:#5A7090;transition:all .2s;}
+.filter-btn.active{border-color:var(--cyan);background:rgba(62,200,232,.14);color:var(--cyan);}
+.sort-sel{background:var(--card2);border:1px solid var(--border2);border-radius:100px;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;padding:7px 14px;outline:none;cursor:pointer;}
+.count-lbl{margin-left:auto;font-size:12px;color:#5A7090;font-weight:700;}
+
+/* ── STUDENT CARDS (teacher) ── */
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.student-card{background:var(--card2);border:1.5px solid var(--border2);border-radius:16px;padding:16px;cursor:pointer;transition:all .2s;}
+.student-card.selected{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(62,200,232,.18);}
+.sc-pct-badge{font-size:16px;font-weight:900;padding:3px 9px;border-radius:100px;}
+.sc-bar-track{height:7px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin-bottom:8px;}
+.sc-bar-fill{height:100%;border-radius:100px;transition:width .5s;}
+.dot-row{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:8px;}
+.dot{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;}
+.detail-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.detail-lbl{font-size:11px;color:#5A7090;width:44px;flex-shrink:0;}
+.detail-track{flex:1;height:4px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;}
+.detail-fill{height:100%;border-radius:100px;}.detail-pct{font-size:10px;font-weight:900;width:28px;text-align:right;}
+.memo-snippet{margin-top:8px;font-size:11px;color:var(--muted);background:rgba(255,255,255,.04);padding:8px 10px;border-radius:8px;line-height:1.6;}
+
+/* ── MATRIX ── */
+.matrix-wrap{overflow-x:auto;}
+.matrix-table{width:100%;border-collapse:separate;border-spacing:0 4px;}
+.matrix-table th{text-align:center;padding:6px 6px;font-size:10px;color:#5A7090;font-weight:900;white-space:nowrap;}
+.matrix-table td{padding:10px 3px;background:var(--card2);}
+.matrix-table tr td:first-child{border-radius:10px 0 0 10px;padding-left:10px;}
+.matrix-table tr td:last-child{border-radius:0 10px 10px 0;padding-right:10px;}
+.matrix-cell{width:28px;height:28px;border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;}
+
+/* ── MEMO VIEW ── */
+.memo-view{display:flex;flex-direction:column;gap:10px;}
+.memo-card{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:14px 18px;}
+.memo-body{font-size:13px;color:var(--muted);background:rgba(255,255,255,.03);padding:10px 12px;border-radius:9px;line-height:1.8;}
+
+/* ── TEACHER COMMENT EDITOR (teacher side) ── */
+.tc-editor{margin-top:6px;background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.2);border-radius:8px;padding:8px;}
+.tc-editor-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+.tc-gen-btn{background:linear-gradient(135deg,#7C5CFC,#3EC8E8);color:#fff;border:none;border-radius:100px;padding:5px 12px;font-size:10px;font-weight:900;cursor:pointer;font-family:var(--font);box-shadow:0 2px 8px rgba(124,92,252,.25);display:inline-flex;align-items:center;gap:3px;}
+.tc-gen-btn:disabled{opacity:.5;cursor:not-allowed;}
+.tc-save-btn{background:var(--gold);color:#0B0E1A;border:none;border-radius:100px;padding:5px 12px;font-size:10px;font-weight:900;cursor:pointer;font-family:var(--font);}
+.tc-del-btn{background:transparent;border:1px solid rgba(232,52,10,.3);color:var(--red);border-radius:100px;padding:5px 10px;font-size:10px;font-weight:900;cursor:pointer;font-family:var(--font);}
+.tc-textarea{width:100%;min-height:60px;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.25);border-radius:6px;color:var(--text);font-family:var(--font);font-size:11px;padding:6px 10px;resize:vertical;outline:none;line-height:1.7;}
+.tc-textarea:focus{border-color:var(--gold);}
+.tc-status{font-size:9px;color:var(--muted);margin-left:auto;}
+.tc-status.published{color:var(--gold);font-weight:900;}
+
+/* ── PROMPT MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;max-width:720px;width:100%;max-height:85vh;display:flex;flex-direction:column;gap:12px;}
+.modal-title{font-size:16px;font-weight:900;background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.modal-close{background:transparent;border:1px solid var(--border2);color:var(--muted);border-radius:100px;padding:5px 14px;font-size:11px;font-weight:900;cursor:pointer;font-family:var(--font);}
+.modal-textarea{flex:1;min-height:300px;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:ui-monospace,'Menlo',monospace;font-size:11px;padding:14px;resize:vertical;outline:none;line-height:1.7;}
+.modal-btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.modal-copy-btn{background:var(--grad1);color:#0B0E1A;border:none;border-radius:100px;padding:9px 20px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);}
+.modal-link-btn{background:linear-gradient(135deg,#7C5CFC,#E84090);color:#fff;border:none;border-radius:100px;padding:9px 20px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+
+/* ── PEER LIST ── */
+.peer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+.peer-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:12px;transition:all .2s;cursor:pointer;}
+.peer-card.is-me{border-color:rgba(0,212,170,.3);background:rgba(0,212,170,.05);}
+.peer-card.expanded{background:rgba(255,255,255,.05);}
+.peer-bar-track{height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin:6px 0;}
+.peer-bar-fill{height:100%;border-radius:100px;transition:width .4s;}
+.peer-dots{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px;}
+.peer-dot{width:14px;height:14px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;}
+.peer-memo-box{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.peer-memo-entry{font-size:10px;color:var(--muted);line-height:1.6;background:rgba(255,255,255,.03);padding:6px 8px;border-radius:6px;margin-bottom:4px;}
+
+/* ── MEMO HISTORY ── */
+.memo-hist-title{font-size:11px;font-weight:900;color:var(--muted);margin-bottom:8px;padding-top:12px;border-top:1px solid var(--border);}
+.memo-hist-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:6px;transition:all .2s;}
+.memo-hist-item:last-child{margin-bottom:0;}
+.memo-hist-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;}
+.memo-hist-tag{font-size:9px;font-weight:900;padding:2px 8px;border-radius:100px;flex-shrink:0;}
+.memo-hist-date{font-size:10px;color:var(--muted);font-weight:700;}
+.memo-hist-body{font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--grad1);color:#0B0E1A;font-weight:900;font-size:14px;padding:12px 28px;border-radius:100px;z-index:400;box-shadow:0 8px 26px rgba(0,212,170,.35);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .3s;}
+.toast.show{opacity:1;}
+
+/* ── EMPTY ── */
+.empty-box{text-align:center;padding:60px;}.empty-icon{font-size:42px;margin-bottom:12px;}
+.empty-title{font-size:15px;font-weight:900;color:#5A7090;margin-bottom:6px;}
+.empty-sub{font-size:12px;color:#3A5070;}.error-msg{text-align:center;padding:40px;color:var(--pink);font-size:14px;font-weight:700;}
+
+/* ── UTILS ── */
+.rel{position:relative;z-index:1;}.pt24{padding-top:24px;}.pb60{padding-bottom:60px;}.tc{text-align:center;}
+.row{display:flex;align-items:center;gap:10px;}.sec-lbl{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.1em;margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<!-- MODE SWITCH -->
+<div class="mode-switch">
+  <button class="mode-btn active" id="btn-student" onclick="switchMode('student')">📐 子ども</button>
+  <button class="mode-btn" id="btn-peers" onclick="switchMode('peers')">👀 みんな</button>
+  <button class="mode-btn" id="btn-teacher" onclick="switchMode('teacher')">🎓 先生</button>
+</div>
+
+<!-- ══ SETUP ══ -->
+<div id="setup" class="screen active">
+  <div class="glow-s"></div>
+  <div class="rel" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+    <div style="font-size:11px;color:var(--teal);font-weight:900;letter-spacing:.12em;margin-bottom:12px;">📐 小学校 第6学年 算数（東京書籍・全14時間）</div>
+    <h1 class="h1-grad">線対称・点対称<br>探究ポータル</h1>
+    <p style="font-size:13px;color:var(--muted);margin-top:8px;text-align:center;">名前と組を入力してはじめよう！<br><span style="font-size:11px;color:var(--cyan);">☁️ どのタブレットでもデータが引き継がれます</span></p>
+    <div class="tag-box" style="margin-bottom:28px;">🔍 美しさのヒミツを解き明かそう！身の回りの『ピッタリ』の法則とは？</div>
+    <div class="setup-box">
+      <div>
+        <label class="setup-label">なまえ</label>
+        <input id="inp-name" class="setup-input" placeholder="山田 太郎" maxlength="20" onkeydown="if(event.key==='Enter')startPortal()">
+      </div>
+      <div>
+        <label class="setup-label">組（クラス）</label>
+        <input id="inp-cls" class="setup-input" placeholder="6年1組" maxlength="12" onkeydown="if(event.key==='Enter')startPortal()">
+      </div>
+      <div id="setup-error" class="setup-error" style="display:none;"></div>
+      <button id="start-btn" class="start-btn" onclick="startPortal()">はじめる 🚀</button>
+      <p style="font-size:11px;color:#3A5070;text-align:center;line-height:1.7;">ログイン不要！同じ名前・組を入力すれば<br>どのタブレットからでも続きから使えます</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STUDENT PORTAL ══ -->
+<div id="portal" class="screen pb60">
+  <div class="glow-s"></div>
+  <div class="rel">
+
+    <!-- 📸 画像保存ボタン（キャプチャ対象外） -->
+    <div style="max-width:860px;margin:0 auto;padding:12px 12px 0;display:flex;justify-content:flex-end;">
+      <button id="save-img-btn" onclick="saveAsImage()" style="background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff;border:none;border-radius:100px;padding:9px 20px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);box-shadow:0 4px 16px rgba(124,92,252,.3);display:flex;align-items:center;gap:6px;transition:opacity .2s;">
+        📸 学びの記録を画像で保存
+      </button>
+    </div>
+
+    <!-- キャプチャ対象エリア -->
+    <div id="capture-area">
+    <div class="tc pt24" style="padding:24px 16px 12px;">
+      <div style="font-size:11px;color:var(--teal);font-weight:900;letter-spacing:.12em;margin-bottom:10px;">📐 小学校 第6学年 算数（東京書籍・全14時間）</div>
+      <h1 class="h1-grad">線対称・点対称</h1>
+      <div class="tag-box">🔍 美しさのヒミツを解き明かそう！</div>
+    </div>
+
+    <!-- Profile -->
+    <div class="profile-bar">
+      <div class="card" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;width:100%;">
+        <div class="row">
+          <span style="font-size:28px;">👤</span>
+          <div>
+            <div id="p-name" style="font-size:16px;font-weight:900;"></div>
+            <div id="p-cls" style="font-size:12px;color:var(--muted);"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+          <span style="font-size:12px;color:var(--muted);font-weight:700;">全体の進捗</span>
+          <div class="progress-track"><div class="progress-fill" id="overall-bar" style="width:0%"></div></div>
+          <span style="font-size:16px;font-weight:900;color:var(--teal);min-width:40px;" id="overall-pct">0%</span>
+        </div>
+        <div class="row">
+          <span class="sync-badge" id="sync-badge">☁️ 同期済み</span>
+          <button class="change-btn" onclick="changeStudent()">名前を変える</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rubric -->
+    <div class="rubric-wrap">
+      <div class="card">
+        <div class="sec-lbl">📋 3つの観点 — タップして確認しよう</div>
+        <div class="rubric-row" id="rubric-row"></div>
+      </div>
+    </div>
+
+    <!-- Lesson grid -->
+    <div class="lesson-grid" id="lesson-grid"></div>
+
+    <!-- Self Evaluation -->
+    <div class="self-eval-wrap">
+      <div class="card">
+        <div class="sec-lbl">🪞 自己評価 — 今の自分はどのレベル？</div>
+        <div class="eval-grid" id="eval-grid"></div>
+      </div>
+    </div>
+
+    <!-- Memo -->
+    <div class="memo-wrap">
+      <div class="card">
+        <div class="sec-lbl">📝 けテぶれノート</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div style="font-size:11px;font-weight:900;color:var(--cyan);margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+              <span style="background:var(--cyan);color:#0B0E1A;border-radius:100px;padding:2px 9px;font-size:10px;">計画</span>
+              授業のはじめに書こう
+            </div>
+            <textarea class="memo-area" id="memo-plan" placeholder="・今日のめあては？&#10;・どんな図形を作図する？&#10;・どこがむずかしそう？" style="min-height:100px;"></textarea>
+            <button onclick="submitMemo('plan')" style="margin-top:8px;width:100%;background:var(--cyan);color:#0B0E1A;border:none;border-radius:100px;padding:9px 0;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);box-shadow:0 4px 12px rgba(62,200,232,.25);transition:opacity .2s;">📤 計画を送信する</button>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:900;color:var(--green);margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+              <span style="background:var(--green);color:#0B0E1A;border-radius:100px;padding:2px 9px;font-size:10px;">振り返り</span>
+              授業のおわりに書こう
+            </div>
+            <textarea class="memo-area" id="memo-review" placeholder="・わかったことは？&#10;・間違えた原因は何だった？&#10;・次にやりたい類題は？" style="min-height:100px;border-color:rgba(48,216,120,.25);"></textarea>
+            <button onclick="submitMemo('review')" style="margin-top:8px;width:100%;background:var(--green);color:#0B0E1A;border:none;border-radius:100px;padding:9px 0;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);box-shadow:0 4px 12px rgba(48,216,120,.25);transition:opacity .2s;">📤 振り返りを送信する</button>
+          </div>
+        </div>
+        <!-- 送信履歴 -->
+        <div id="memo-history" style="margin-top:16px;"></div>
+      </div>
+    </div>
+    </div><!-- /capture-area -->
+
+    <!-- Google Form embed -->
+    <div class="memo-wrap" id="form-section" style="display:none;">
+      <div class="card">
+        <div class="sec-lbl">📋 アンケート・振り返りフォーム</div>
+        <div style="background:rgba(62,200,232,.06);border:1px solid rgba(62,200,232,.15);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:var(--cyan);font-weight:700;">
+          💡 先生からのフォームです。回答してね！
+        </div>
+        <iframe id="form-iframe" src="" style="width:100%;min-height:500px;border:none;border-radius:10px;background:rgba(255,255,255,.03);"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PEERS SCREEN ══ -->
+<div id="peers" class="screen pb60">
+  <div class="glow-s"></div>
+  <div class="rel">
+    <div class="tc pt24" style="padding:24px 16px 12px;">
+      <div style="font-size:11px;color:var(--teal);font-weight:900;letter-spacing:.12em;margin-bottom:10px;">📐 小学校 第6学年 算数（東書14時間）</div>
+      <h1 class="h1-grad">みんなの進捗</h1>
+      <div class="tag-box">👀 クラスメイトの学びをチェックしよう！</div>
+    </div>
+
+    <div style="max-width:860px;margin:0 auto 12px;padding:0 12px;">
+      <div class="card" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
+        <div class="row">
+          <span style="font-size:24px;">⭐</span>
+          <div>
+            <div id="peer-my-name" style="font-size:15px;font-weight:900;"></div>
+            <div id="peer-my-cls" style="font-size:11px;color:var(--muted);"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+          <span style="font-size:12px;color:var(--muted);font-weight:700;">じぶんの進捗</span>
+          <div class="progress-track"><div class="progress-fill" id="peer-my-bar" style="width:0%"></div></div>
+          <span style="font-size:16px;font-weight:900;color:var(--teal);min-width:40px;" id="peer-my-pct">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width:860px;margin:0 auto 12px;padding:0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <select id="peer-scope" onchange="loadPeers()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:100px;color:var(--text);font-family:var(--font);font-size:12px;font-weight:700;padding:7px 14px;outline:none;cursor:pointer;">
+        <option value="class">🏫 同じ組だけ</option>
+        <option value="all">🌐 全クラス</option>
+      </select>
+      <button onclick="loadPeers()" style="background:rgba(0,212,170,.12);border:1px solid rgba(0,212,170,.25);color:var(--teal);border-radius:100px;padding:7px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);">🔄 更新</button>
+      <span id="peer-count" style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:700;"></span>
+    </div>
+
+    <div style="max-width:860px;margin:0 auto 12px;padding:0 12px;">
+      <div class="card" id="peer-stats"></div>
+    </div>
+
+    <div style="max-width:860px;margin:0 auto;padding:0 12px;">
+      <div id="peer-list" style="font-size:12px;color:var(--muted);text-align:center;padding:20px;">データを読み込み中…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TEACHER DASHBOARD ══ -->
+<div id="teacher" class="screen pb60">
+  <div class="glow-t"></div>
+
+  <!-- Password Lock -->
+  <div id="t-lock" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;position:relative;z-index:1;">
+    <div style="font-size:42px;margin-bottom:16px;">🔒</div>
+    <div style="font-size:11px;color:var(--cyan);font-weight:900;letter-spacing:.1em;margin-bottom:8px;">教師用ダッシュボード</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px;text-align:center;">パスワードを入力してください</p>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 32px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:14px;">
+      <input id="t-pw-inp" type="password" class="setup-input" placeholder="パスワード" onkeydown="if(event.key==='Enter')checkPassword()" style="text-align:center;font-size:20px;letter-spacing:.3em;">
+      <div id="t-pw-err" style="font-size:12px;color:var(--pink);font-weight:700;text-align:center;display:none;">⚠️ パスワードが違います</div>
+      <button onclick="checkPassword()" class="start-btn" style="background:linear-gradient(135deg,var(--cyan),#185FA5);">入力する 🔓</button>
+    </div>
+  </div>
+
+  <!-- Dashboard body -->
+  <div id="t-body" style="display:none;">
+    <div class="t-header">
+      <div class="t-header-inner">
+        <div>
+          <div style="font-size:11px;color:var(--cyan);font-weight:900;letter-spacing:.1em;margin-bottom:4px;">🎓 教師用ダッシュボード</div>
+          <h2 class="t-h2">線対称・点対称（東書14時間）｜クラス進捗管理</h2>
+        </div>
+        <div class="row">
+          <span id="t-time" style="font-size:11px;color:#3A5070;font-weight:700;"></span>
+          <span id="t-conn-err" style="font-size:11px;color:var(--pink);font-weight:700;display:none;">⚠️ 接続エラー</span>
+          <button class="refresh-btn" onclick="fetchAll()">🔄 更新</button>
+          <button onclick="lockTeacher()" style="background:transparent;border:1px solid var(--border2);color:#5A7090;border-radius:100px;padding:7px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);">🔒 ロック</button>
+        </div>
+      </div>
+    </div>
+    <div class="t-inner">
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <!-- ── TOOLS: Form & Export ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <!-- Google Form URL -->
+        <div class="card-t">
+          <div class="sec-lbl" style="color:#5A7090;">📋 Googleフォーム配信</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <input id="form-url-inp" class="setup-input" placeholder="GoogleフォームのURLを貼り付け" style="font-size:12px;padding:8px 12px;flex:1;">
+            <button onclick="saveFormUrl()" style="background:var(--cyan);color:#0B0E1A;border:none;border-radius:100px;padding:8px 16px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);white-space:nowrap;">設定</button>
+          </div>
+          <div id="form-url-status" style="font-size:11px;color:var(--muted);line-height:1.6;">
+            URLを設定すると、子ども画面の下部にフォームが埋め込まれます
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button onclick="clearFormUrl()" style="background:transparent;border:1px solid var(--border2);color:#5A7090;border-radius:100px;padding:5px 12px;font-size:11px;font-weight:900;cursor:pointer;font-family:var(--font);">🗑️ URL削除</button>
+          </div>
+        </div>
+        <!-- CSV Export -->
+        <div class="card-t">
+          <div class="sec-lbl" style="color:#5A7090;">📥 データエクスポート</div>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6;">けテぶれデータをCSVで出力<br>名前→教科・単元→計画→分析→評価</p>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <button onclick="exportCSV('all')" style="background:linear-gradient(135deg,var(--teal),var(--cyan));color:#0B0E1A;border:none;border-radius:100px;padding:9px 18px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);box-shadow:0 4px 14px rgba(0,212,170,.2);">📥 全データCSV</button>
+            <button onclick="exportCSV('memo')" style="background:rgba(62,200,232,.12);border:1px solid rgba(62,200,232,.3);color:var(--cyan);border-radius:100px;padding:7px 14px;font-size:11px;font-weight:900;cursor:pointer;font-family:var(--font);">📝 計画・分析メモのみ</button>
+            <button onclick="exportCSV('eval')" style="background:rgba(124,92,252,.15);border:1px solid rgba(124,92,252,.3);color:var(--violet);border-radius:100px;padding:7px 14px;font-size:11px;font-weight:900;cursor:pointer;font-family:var(--font);">🪞 自己評価のみ</button>
+            <div style="display:flex;gap:4px;margin-top:2px;">
+              <button onclick="exportCSV('comment_all')" style="flex:1;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.35);color:var(--gold);border-radius:100px;padding:7px 10px;font-size:11px;font-weight:900;cursor:pointer;font-family:var(--font);">💬 コメントCSV(全)</button>
+              <button onclick="exportCSV('comment_done')" style="flex:1;background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(240,160,48,.15));border:1px solid rgba(255,215,0,.4);color:var(--gold);border-radius:100px;padding:7px 10px;font-size:11px;font-weight:900;cursor:pointer;font-family:var(--font);">💬 コメント済のみ</button>
+            </div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border2);">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;line-height:1.5;">📤 Excel/CSVでコメントを一括入力</div>
+              <input type="file" id="comment-import-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleCommentImport(event)">
+              <button onclick="document.getElementById('comment-import-file').click()" style="width:100%;background:linear-gradient(135deg,#E84090,#7C5CFC);color:#fff;border:none;border-radius:100px;padding:8px 14px;font-size:11px;font-weight:900;cursor:pointer;font-family:var(--font);box-shadow:0 4px 12px rgba(232,64,144,.25);">📤 コメントをアップロード</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-t" style="margin-bottom:12px;">
+        <div class="sec-lbl" style="color:#5A7090;">📈 授業別クラス達成率</div>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+      <div class="controls" style="flex-wrap:wrap;gap:8px;">
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-view="cards" onclick="setView('cards')">カード</button>
+          <button class="toggle-btn" data-view="matrix" onclick="setView('matrix')">一覧</button>
+          <button class="toggle-btn" data-view="memos" onclick="setView('memos')">💬 メモ・コメント</button>
+        </div>
+        <select class="sort-sel" id="class-sel" onchange="setClassFilter(this.value)" style="border-color:rgba(62,200,232,.4);color:var(--cyan);">
+          <option value="all">🏫 全クラス</option>
+        </select>
+        <button class="filter-btn active" data-f="all" onclick="setFilter('all')">全員</button>
+        <button class="filter-btn" data-f="done" onclick="setFilter('done')">完了✅</button>
+        <button class="filter-btn" data-f="mid" onclick="setFilter('mid')">進行中⚡</button>
+        <button class="filter-btn" data-f="behind" onclick="setFilter('behind')">要サポート🆘</button>
+        <select class="sort-sel" id="sort-sel" onchange="renderStudents()">
+          <option value="pct">進捗順</option>
+          <option value="name">名前順</option>
+          <option value="time">更新順</option>
+        </select>
+        <button id="delete-mode-btn" onclick="toggleDeleteMode()" style="margin-left:auto;background:rgba(232,52,10,.12);border:1px solid rgba(232,52,10,.3);color:var(--red);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);">🗑️ 削除モード</button>
+        <span class="count-lbl" id="count-lbl"></span>
+      </div>
+      <div id="delete-bar" style="display:none;background:rgba(232,52,10,.08);border:1px solid rgba(232,52,10,.25);border-radius:12px;padding:12px 16px;margin-bottom:12px;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:var(--red);font-weight:900;">🗑️ 削除モード：削除したい生徒にチェックを入れて「削除する」を押してください</span>
+        <button onclick="deleteSelected()" style="background:var(--red);color:#fff;border:none;border-radius:100px;padding:7px 18px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);">選択した生徒を削除</button>
+        <button onclick="toggleDeleteMode()" style="background:transparent;border:1px solid var(--border2);color:#5A7090;border-radius:100px;padding:7px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:var(--font);">キャンセル</button>
+      </div>
+      <div id="t-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROMPT MODAL ══ -->
+<div class="modal-overlay" id="prompt-modal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div>
+        <div class="modal-title">🤖 AI下書き生成用プロンプト</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">📋コピー → Claudeに貼り付け → 返ってきた内容を下の編集欄に貼る</div>
+      </div>
+      <button class="modal-close" onclick="closePromptModal()">✕ 閉じる</button>
+    </div>
+    <textarea id="prompt-text" class="modal-textarea" readonly></textarea>
+    <div class="modal-btn-row">
+      <button class="modal-copy-btn" onclick="copyPrompt()">📋 プロンプトをコピー</button>
+      <a class="modal-link-btn" href="https://claude.ai/new" target="_blank" rel="noopener">🔗 Claude.aiを開く</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ IMPORT CONFIRM MODAL ══ -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div>
+        <div class="modal-title" style="background:linear-gradient(135deg,#FFD700,#E84090);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📤 コメントのインポート確認</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">内容を確認して、実行するボタンを押してください</div>
+      </div>
+      <button class="modal-close" onclick="closeImportModal()">✕ 閉じる</button>
+    </div>
+    <div id="import-summary" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+    <div id="import-preview" style="flex:1;overflow-y:auto;max-height:360px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;padding:10px;"></div>
+    <div class="modal-btn-row">
+      <button id="import-confirm-btn" class="modal-copy-btn" style="background:linear-gradient(135deg,#FFD700,#F0A030);" onclick="confirmImport()">✅ この内容で反映する</button>
+      <button class="modal-close" onclick="closeImportModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+// ─── FIREBASE ────────────────────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyBMNixKrhyw7VlRAcprjB0svfY_Dy2t8tM",
+  authDomain:"rika-portal.firebaseapp.com",
+  databaseURL:"https://rika-portal-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"rika-portal",
+  storageBucket:"rika-portal.firebasestorage.app",
+  messagingSenderId:"299874180136",
+  appId:"1:299874180136:web:5a7ca0d0225f0f7444a91d",
+});
+const db = firebase.database();
+const DB_ROOT = "symmetry_tokyo";
+
+// ─── LESSON DATA (東京書籍版・全14時間) ──────────────────────────────────────
+const LESSONS = [
+  { id:1, hour:"第1時", icon:"🔎", title:"美しさのヒミツを見つけよう",
+    stage:"出会う", stageColor:"#E84090", accent:"#E84090",
+    goal:"身近なマークや写真から、半分に折るとピッタリ重なる形（線対称）を見つける",
+    checks:[
+      "ロゴや国旗、標識などから「折ると重なりそうな形」を3つ以上見つけた",
+      "折り紙を実際に折って、ピッタリ重なることを確かめた",
+      "「美しさのヒミツは何だろう？」という単元の問いを自分の言葉で書いた"
+    ]},
+  { id:2, hour:"第2時", icon:"🦋", title:"線対称の意味を知ろう",
+    stage:"知る", stageColor:"#3EC8E8", accent:"#3EC8E8",
+    goal:"線対称な図形の意味を知り、対称の軸、対応する点・辺・角を見つける",
+    checks:[
+      "「線対称」「対称の軸」「対応する点・辺・角」という算数用語を覚えた",
+      "対応する点・辺・角をすべて見つけて色分けできた",
+      "対称の軸を正しく引くことができた"
+    ]},
+  { id:3, hour:"第3時", icon:"📏", title:"線対称の性質を調べよう",
+    stage:"調べる", stageColor:"#00D4AA", accent:"#00D4AA",
+    goal:"対応する点を結んだ直線と対称の軸の関係を調べ、線対称の性質をまとめる",
+    checks:[
+      "対応する点を結んだ直線が、対称の軸と垂直に交わることを確かめた",
+      "対称の軸から対応する点までの長さが等しいことを、実際に測って確かめた",
+      "線対称の性質を自分の言葉でまとめることができた"
+    ]},
+  { id:4, hour:"第4時", icon:"✏️", title:"方眼を使って線対称を作図しよう",
+    stage:"描く", stageColor:"#F0A030", accent:"#F0A030",
+    goal:"方眼を使って、線対称な図形を手順よく作図する",
+    checks:[
+      "対応する点の位置を、マス目を数えて正しく取れた",
+      "点を順番につないで線対称な図形を完成させた",
+      "友達の作図を見て、手順の違いに気づくことができた"
+    ]},
+  { id:5, hour:"第5時", icon:"📐", title:"方眼なしで線対称を作図しよう",
+    stage:"描く", stageColor:"#F0A030", accent:"#F0A030",
+    goal:"白紙の状態で、コンパスと三角定規を使って線対称な図形を作図する",
+    checks:[
+      "三角定規を使って、対称の軸に垂直な直線を正しく引けた",
+      "コンパスを使って、軸から対応する点までの長さを正確に取れた",
+      "白紙でも最後まで線対称な図形を作図することができた"
+    ]},
+  { id:6, hour:"第6時", icon:"🔄", title:"回すと重なる形を見つけよう",
+    stage:"出会う", stageColor:"#E84090", accent:"#E84090",
+    goal:"風車やトランプなどから、180度回すとピッタリ重なる図形（点対称）を見つける",
+    checks:[
+      "身の回りから「折ると重ならないけど、回すと重なりそうな形」を見つけた",
+      "トレーシングペーパーを重ねて180度回し、ピッタリ重なることを確かめた",
+      "線対称とは違う「新しい対称」に気づいた"
+    ]},
+  { id:7, hour:"第7時", icon:"🔁", title:"点対称の意味を知ろう",
+    stage:"知る", stageColor:"#3EC8E8", accent:"#3EC8E8",
+    goal:"点対称な図形の意味を知り、対称の中心、対応する点・辺・角を見つける",
+    checks:[
+      "「点対称」「対称の中心」という算数用語を覚えた",
+      "対応する点・辺・角をすべて見つけて色分けできた",
+      "線対称と点対称のちがいを自分の言葉で説明できた"
+    ]},
+  { id:8, hour:"第8時", icon:"🎯", title:"点対称の性質を調べよう",
+    stage:"調べる", stageColor:"#00D4AA", accent:"#00D4AA",
+    goal:"対応する点を結んだ直線と対称の中心の関係を調べ、点対称の性質をまとめる",
+    checks:[
+      "対応する点を結んだ直線が、すべて対称の中心を通ることを確かめた",
+      "対称の中心から対応する点までの長さが等しいことを確かめた",
+      "対称の中心の見つけ方（対応する点を結んだ直線の交点）を発見できた"
+    ]},
+  { id:9, hour:"第9時", icon:"🖊️", title:"点対称な図形を作図しよう",
+    stage:"描く", stageColor:"#F0A030", accent:"#F0A030",
+    goal:"方眼を使って、点対称な図形を作図する",
+    checks:[
+      "対称の中心を通る直線を引き、同じ長さを取る手順を理解した",
+      "方眼を使って、点対称な図形を最後まで作図できた",
+      "作図した図形を180度回して、ピッタリ重なることを確かめた"
+    ]},
+  { id:10, hour:"第10時", icon:"💪", title:"けテぶれ自主学習タイム",
+    stage:"練習", stageColor:"#7C5CFC", accent:"#7C5CFC",
+    goal:"自分の課題に合わせて、作図や問題練習に取り組む（けテぶれ的自由学習）",
+    checks:[
+      "自分がつまずいているところを見つけて、練習問題を選べた",
+      "間違えた問題の原因を分析して、類題に再チャレンジした",
+      "友達と教え合ったり、ヒントを出し合ったりできた"
+    ]},
+  { id:11, hour:"第11時", icon:"🔖", title:"基本図形を対称の目で分類しよう",
+    stage:"整理", stageColor:"#7C5CFC", accent:"#7C5CFC",
+    goal:"これまでに習った図形（三角形・四角形など）を対称性の視点で分類する",
+    checks:[
+      "図形カードを折ったり回したりして、線対称・点対称・両方・どちらでもないに分類できた",
+      "二等辺三角形・平行四辺形などの対称性を表にまとめた",
+      "グループで意見を出し合って、分類の理由を話し合えた"
+    ]},
+  { id:12, hour:"第12時", icon:"⭐", title:"正多角形の対称性を調べよう",
+    stage:"整理", stageColor:"#7C5CFC", accent:"#7C5CFC",
+    goal:"正三角形〜正八角形の対称性を調べ、表に整理してきまりを見つける",
+    checks:[
+      "正多角形の対称の軸の本数を、実際に調べて表に書いた",
+      "頂点の数が偶数のときと奇数のときで、点対称になるかどうかのちがいに気づいた",
+      "表を見て、正多角形の対称性のきまりを自分の言葉でまとめた"
+    ]},
+  { id:13, hour:"第13時", icon:"🎨", title:"オリジナルロゴをデザインしよう",
+    stage:"創る", stageColor:"#FFD700", accent:"#FFD700",
+    goal:"対称性を活かして、クラスマークや自分だけのロゴをデザインする",
+    checks:[
+      "線対称または点対称になるようにロゴをデザインした",
+      "対称の軸の本数や対称の中心の位置を意識して作図できた",
+      "自分のデザインのこだわりポイントを書き出した"
+    ]},
+  { id:14, hour:"第14時", icon:"🎤", title:"学びを伝えよう・振り返ろう",
+    stage:"伝える", stageColor:"#FFD700", accent:"#FFD700",
+    goal:"自分のデザインを算数の言葉でプレゼンし、単元全体を振り返る",
+    checks:[
+      "「対称の軸」「対称の中心」などの算数用語を使って友達に説明できた",
+      "友達の発表を聞いて、気づいたことや感想を伝え合えた",
+      "単元のはじめの問い「美しさのヒミツ」について、自分の答えを書けた"
+    ]},
+];
+
+// ─── RUBRIC DATA (資料準拠) ─────────────────────────────────────────────────
+const RUBRICS = [
+  { id:"skill", icon:"📏", name:"知識・技能",
+    grades:{
+      A:"線対称・点対称の性質を深く理解し、方眼がない白紙の状態でも、手順を間違えずに複雑な図形を正確に作図することができた。",
+      B:"線対称・点対称の意味を理解し、定規やコンパスを使って正確に作図することができた。",
+      C:"支援を受けながら、方眼を使って簡単な線対称・点対称な図形を作図することができた。"
+    }},
+  { id:"think", icon:"💡", name:"思考・判断・表現",
+    grades:{
+      A:"正多角形などの分類から表を用いて規則性を見いだし、自らの言葉で筋道立てて分かりやすく説明することができた。",
+      B:"図形の構成要素に着目し、「なぜ対称と言えるのか」を図や算数の言葉を使って説明することができた。",
+      C:"図形を折ったり回したりして、ピッタリ重なることを見つけることができた。"
+    }},
+  { id:"attitude", icon:"🔥", name:"主体的に学習に取り組む態度",
+    grades:{
+      A:"日常生活の中から進んで対称なデザインを探求し、自らの学習方法を調整しながら、オリジナルの図形を意欲的に創造することができた。",
+      B:"身の回りの生活から対称な図形を見つけようとし、作図のミスなどを自分で振り返り直すことができた。",
+      C:"先生や友達の真似をして、対称な図形を見つけたり、課題に取り組むことができた。"
+    }},
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentMode="student",studentData=null,allStudents=[],selectedId=null;
+let currentView="cards",currentFilter="all",currentClass="all";
+let deleteMode=false,deleteSelected_ids=new Set(),teacherUnlocked=false,saveTimer=null;
+const TEACHER_PW="3955";
+let activeRubric=null;
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function normalizeStr(s){return s.trim().replace(/[！-～]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/　/g," ").trim();}
+function makeId(cls,name){return(normalizeStr(cls)+"_"+normalizeStr(name)).replace(/[.#$[\]/\s]/g,"_");}
+function getPct(s){if(!s?.checks)return 0;let done=0,total=0;LESSONS.forEach(l=>{const c=s.checks[l.id]||{};done+=Object.values(c).filter(Boolean).length;total+=l.checks.length;});return total?Math.round(done/total*100):0;}
+function getLessonPct(s,lid){const l=LESSONS.find(x=>x.id===lid);if(!l||!s?.checks)return 0;const c=s.checks[lid]||{};return Math.round(Object.values(c).filter(Boolean).length/l.checks.length*100);}
+function pctColor(p){if(p===100)return"#00D4AA";if(p>=60)return"#F0A030";if(p>=30)return"#3EC8E8";return"#7B8FAD";}
+function timeSince(iso){if(!iso)return"—";const m=Math.floor((Date.now()-new Date(iso))/60000);if(m<1)return"たった今";if(m<60)return`${m}分前`;const h=Math.floor(m/60);if(h<24)return`${h}時間前`;return`${Math.floor(h/24)}日前`;}
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
+function setSyncBadge(state){const b=document.getElementById("sync-badge");if(!b)return;if(state==="saving"){b.textContent="☁️ 保存中…";b.className="sync-badge saving";}else{b.textContent="☁️ 同期済み";b.className="sync-badge";}}
+function fmtShort(iso){if(!iso)return"";const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`;}
+function fmtDate(iso){if(!iso)return"";const d=new Date(iso);return`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`;}
+function esc(t){return(t||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+// ─── MODE ────────────────────────────────────────────────────────────────────
+function switchMode(mode){
+  currentMode=mode;
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".mode-btn").forEach(b=>b.classList.remove("active"));
+  let screen;
+  if(mode==="student") screen=studentData?"portal":"setup";
+  else if(mode==="peers") screen=studentData?"peers":"setup";
+  else screen="teacher";
+  document.getElementById(screen).classList.add("active");
+  document.getElementById("btn-"+mode).classList.add("active");
+  if(mode==="peers"&&studentData){
+    updatePeerMyInfo();
+    loadPeers();
+  }
+  if(mode==="teacher"){
+    if(teacherUnlocked){document.getElementById("t-lock").style.display="none";document.getElementById("t-body").style.display="block";fetchAll();}
+    else{document.getElementById("t-lock").style.display="flex";document.getElementById("t-body").style.display="none";setTimeout(()=>document.getElementById("t-pw-inp").focus(),100);}
+  }
+}
+function updatePeerMyInfo(){
+  if(!studentData)return;
+  const n=document.getElementById("peer-my-name");
+  const c=document.getElementById("peer-my-cls");
+  const b=document.getElementById("peer-my-bar");
+  const p=document.getElementById("peer-my-pct");
+  if(n)n.textContent=studentData.name;
+  if(c)c.textContent=studentData.className;
+  const pct=getPct(studentData);
+  if(b)b.style.width=pct+"%";
+  if(p)p.textContent=pct+"%";
+}
+function checkPassword(){const v=document.getElementById("t-pw-inp").value;if(v===TEACHER_PW){teacherUnlocked=true;document.getElementById("t-pw-err").style.display="none";document.getElementById("t-pw-inp").value="";document.getElementById("t-lock").style.display="none";document.getElementById("t-body").style.display="block";fetchAll();}else{document.getElementById("t-pw-err").style.display="block";document.getElementById("t-pw-inp").value="";document.getElementById("t-pw-inp").focus();}}
+function lockTeacher(){teacherUnlocked=false;document.getElementById("t-lock").style.display="flex";document.getElementById("t-body").style.display="none";setTimeout(()=>document.getElementById("t-pw-inp").focus(),100);}
+
+// ─── SETUP ───────────────────────────────────────────────────────────────────
+async function startPortal(){
+  const name=normalizeStr(document.getElementById("inp-name").value);
+  const cls=normalizeStr(document.getElementById("inp-cls").value);
+  const errEl=document.getElementById("setup-error"),btn=document.getElementById("start-btn");
+  if(!name||!cls){errEl.textContent="⚠️ 名前と組を入力してね！";errEl.style.display="block";return;}
+  errEl.style.display="none";btn.disabled=true;btn.textContent="接続中…";
+  const id=makeId(cls,name);
+  try{
+    const snap=await db.ref(DB_ROOT+"/students/"+id).once("value");
+    studentData=snap.val()||{id,name,className:cls,checks:{},selfEval:{},memoPlan:"",memoReview:"",updatedAt:new Date().toISOString()};
+    if(!snap.val())await db.ref(DB_ROOT+"/students/"+id).set(studentData);
+    sessionStorage.setItem("sym_tokyo_sid",id);
+    renderPortal();switchMode("student");loadFormUrl();
+    subscribeStudent();
+  }catch(e){errEl.textContent="⚠️ 接続エラー。Wi-Fiを確認してください。";errEl.style.display="block";}
+  btn.disabled=false;btn.textContent="はじめる 🚀";
+}
+function changeStudent(){sessionStorage.removeItem("sym_tokyo_sid");studentData=null;document.getElementById("inp-name").value="";document.getElementById("inp-cls").value="";document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById("setup").classList.add("active");}
+
+// ─── REALTIME SUBSCRIPTION (student side) ────────────────────────────────────
+let studentRef=null;
+function subscribeStudent(){
+  if(!studentData)return;
+  if(studentRef)studentRef.off();
+  studentRef=db.ref(DB_ROOT+"/students/"+studentData.id);
+  studentRef.on("value",snap=>{
+    const v=snap.val();
+    if(!v)return;
+    const plan=document.getElementById("memo-plan")?.value;
+    const review=document.getElementById("memo-review")?.value;
+    studentData=v;
+    renderMemoHistory();
+    renderOverall();
+    renderLessons();
+    renderSelfEval();
+    if(plan!==undefined)document.getElementById("memo-plan").value=plan;
+    if(review!==undefined)document.getElementById("memo-review").value=review;
+  });
+}
+
+// ─── RENDER PORTAL ───────────────────────────────────────────────────────────
+function renderPortal(){
+  document.getElementById("p-name").textContent=studentData.name;
+  document.getElementById("p-cls").textContent=studentData.className;
+  document.getElementById("memo-plan").value="";
+  document.getElementById("memo-review").value="";
+  renderOverall();renderRubric();renderLessons();renderSelfEval();renderMemoHistory();
+}
+function renderOverall(){const p=getPct(studentData);const b=document.getElementById("overall-bar");const pe=document.getElementById("overall-pct");if(b)b.style.width=p+"%";if(pe)pe.textContent=p+"%";}
+
+function renderRubric(){
+  const row=document.getElementById("rubric-row");
+  row.innerHTML=RUBRICS.map(r=>{
+    const isActive=activeRubric===r.id;
+    return`<div class="rubric-item${isActive?" active":""}" onclick="toggleRubric('${r.id}')">
+      <div class="rubric-icon">${r.icon}</div>
+      <div class="rubric-name">${r.name}</div>
+      <div class="rubric-desc">${isActive?"":"タップで詳細"}</div>
+      <div class="rubric-detail">
+        <div class="rubric-grade rubric-grade-a"><strong>A</strong>　${r.grades.A}</div>
+        <div class="rubric-grade rubric-grade-b"><strong>B</strong>　${r.grades.B}</div>
+        <div class="rubric-grade rubric-grade-c"><strong>C</strong>　${r.grades.C}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+function toggleRubric(id){activeRubric=activeRubric===id?null:id;renderRubric();}
+
+function renderLessons(){
+  const grid=document.getElementById("lesson-grid");
+  grid.innerHTML=LESSONS.map(l=>{
+    const pct=getLessonPct(studentData,l.id);const isDone=pct===100;
+    const c=studentData.checks?.[l.id]||{};
+    const checks=l.checks.map((text,i)=>{
+      const checked=!!c[i];
+      return`<div class="check-item${checked?" checked":""}" onclick="toggleCheck(${l.id},${i})" style="${checked?`background:${l.accent}18;`:""}">
+        <div class="check-box" style="${checked?`border-color:${l.accent};background:${l.accent};`:""}">${checked?"✓":""}</div>
+        <span class="check-text">${text}</span>
+      </div>`;
+    }).join("");
+    return`<div class="lesson-card${isDone?" done":""}" style="${isDone?`border-color:${l.accent};`:""}">
+      <div class="lc-top"><span class="lc-hour" style="color:${l.accent};">${l.hour}</span><span class="lc-stage" style="background:${l.stageColor};">${l.stage}</span></div>
+      <div class="lc-title"><span style="margin-right:4px;">${l.icon}</span>${l.title}</div>
+      <div class="lc-goal">${l.goal}</div>
+      <div class="check-list">${checks}</div>
+      <div class="lc-bar-wrap"><div class="lc-bar-track"><div class="lc-bar-fill" style="width:${pct}%;background:${l.accent};"></div></div><span class="lc-pct" style="color:${l.accent};">${pct}%</span></div>
+      ${isDone?'<div class="done-star">🌟</div>':""}
+    </div>`;
+  }).join("");
+}
+
+function renderSelfEval(){
+  const grid=document.getElementById("eval-grid");
+  grid.innerHTML=RUBRICS.map(r=>{
+    const current=studentData.selfEval?.[r.id]||"";
+    return`<div>
+      <div class="eval-col-title" style="background:${r.id==="skill"?"rgba(62,200,232,.15);color:var(--cyan)":r.id==="think"?"rgba(124,92,252,.15);color:var(--violet)":"rgba(232,64,144,.15);color:var(--pink)"};">${r.icon} ${r.name}</div>
+      ${["A","B","C"].map(g=>`<div class="eval-option${current===g?" selected":""}" onclick="setSelfEval('${r.id}','${g}')">
+        <div class="eval-radio"></div>
+        <span>${g}：${r.grades[g].substring(0,30)}…</span>
+      </div>`).join("")}
+    </div>`;
+  }).join("");
+}
+function setSelfEval(rubricId,grade){
+  if(!studentData.selfEval)studentData.selfEval={};
+  studentData.selfEval[rubricId]=studentData.selfEval[rubricId]===grade?"":grade;
+  renderSelfEval();scheduleSave();
+}
+
+// ─── CHECK TOGGLE ────────────────────────────────────────────────────────────
+async function toggleCheck(lid,idx){
+  if(!studentData.checks)studentData.checks={};if(!studentData.checks[lid])studentData.checks[lid]={};
+  studentData.checks[lid][idx]=!studentData.checks[lid][idx];
+  const lesson=LESSONS.find(l=>l.id===lid);
+  const done=Object.values(studentData.checks[lid]).filter(Boolean).length;
+  if(done===lesson.checks.length)showToast(`🌟 ${lesson.hour} コンプリート！`);
+  renderLessons();renderOverall();scheduleSave();
+}
+function scheduleSave(){setSyncBadge("saving");clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{studentData.updatedAt=new Date().toISOString();try{await db.ref(DB_ROOT+"/students/"+studentData.id).set(studentData);}catch{}setSyncBadge("done");},600);}
+
+async function submitMemo(type){
+  const field=type==="plan"?"memo-plan":"memo-review";
+  const text=document.getElementById(field).value.trim();
+  if(!text){showToast("⚠️ 内容を入力してから送信してね！");return;}
+  if(!studentData.memoHistory)studentData.memoHistory=[];
+  const entry={
+    id:"m_"+Date.now()+"_"+Math.random().toString(36).slice(2,6),
+    type:type,
+    text:text,
+    date:new Date().toISOString()
+  };
+  studentData.memoHistory.push(entry);
+  if(type==="plan")studentData.memoPlan=text;
+  else studentData.memoReview=text;
+  document.getElementById(field).value="";
+  scheduleSave();
+  renderMemoHistory();
+  const label=type==="plan"?"計画":"振り返り";
+  showToast(`📤 ${label}を送信しました！`);
+}
+
+function renderMemoHistory(){
+  const el=document.getElementById("memo-history");
+  if(!el)return;
+  const hist=studentData.memoHistory||[];
+  if(!hist.length){el.innerHTML="";return;}
+  const plans=[...hist.filter(h=>h.type==="plan")].reverse();
+  const reviews=[...hist.filter(h=>h.type==="review")].reverse();
+  const maxLen=Math.max(plans.length,reviews.length);
+  let rowsHtml="";
+  for(let i=0;i<maxLen;i++){
+    const p=plans[i];
+    const r=reviews[i];
+    const tcHtml=r&&r.teacherComment?`
+      <div class="tc-box">
+        <div class="tc-box-title">💬 先生から</div>
+        ${esc(r.teacherComment)}
+      </div>`:"";
+    rowsHtml+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;">
+      <div class="memo-hist-item" style="${p?"":"opacity:.3;"}">
+        ${p?`<div class="memo-hist-head">
+          <span class="memo-hist-tag" style="background:var(--cyan);color:#0B0E1A;">計画</span>
+          <span class="memo-hist-date">📅 ${fmtShort(p.date)}</span>
+        </div>
+        <div class="memo-hist-body">${esc(p.text)}</div>`
+        :`<div style="font-size:11px;color:#3A5070;padding:6px;">—</div>`}
+      </div>
+      <div class="memo-hist-item" style="${r?"":"opacity:.3;"}">
+        ${r?`<div class="memo-hist-head">
+          <span class="memo-hist-tag" style="background:var(--green);color:#0B0E1A;">分析</span>
+          <span class="memo-hist-date">📅 ${fmtShort(r.date)}</span>
+          ${r.teacherComment?'<span class="tc-badge">💬 先生コメントあり</span>':""}
+        </div>
+        <div class="memo-hist-body">${esc(r.text)}</div>
+        ${tcHtml}`
+        :`<div style="font-size:11px;color:#3A5070;padding:6px;">—</div>`}
+      </div>
+    </div>`;
+  }
+  el.innerHTML=`
+    <div class="memo-hist-title">📋 送信した記録（${hist.length}件）</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+      <div style="font-size:10px;font-weight:900;color:var(--cyan);text-align:center;">📋 計画</div>
+      <div style="font-size:10px;font-weight:900;color:var(--green);text-align:center;">💡 分析</div>
+    </div>
+    ${rowsHtml}
+  `;
+}
+
+// ─── TEACHER ─────────────────────────────────────────────────────────────────
+async function fetchAll(){
+  document.getElementById("t-conn-err").style.display="none";
+  document.getElementById("t-content").innerHTML=`<div class="empty-box"><div style="font-size:32px;margin-bottom:8px;">🔄</div><div style="color:#5A7090;font-size:15px;">読み込み中…</div></div>`;
+  try{
+    const snap=await db.ref(DB_ROOT+"/students").once("value");
+    allStudents=snap.val()?Object.values(snap.val()):[];
+    document.getElementById("t-time").textContent=`🕐${new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}更新`;
+    updateClassSelect();renderDashboard();loadFormUrl();
+  }catch(e){document.getElementById("t-conn-err").style.display="inline";document.getElementById("t-content").innerHTML=`<div class="error-msg">⚠️ 接続できません。Wi-Fiを確認してください。</div>`;}
+}
+function updateClassSelect(){
+  const classes=[...new Set(allStudents.map(s=>s.className||"").filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
+  const sel=document.getElementById("class-sel");const prev=sel.value;
+  sel.innerHTML=`<option value="all">🏫 全クラス（${allStudents.length}人）</option>`+classes.map(c=>`<option value="${c}">${c}（${allStudents.filter(s=>s.className===c).length}人）</option>`).join("");
+  sel.value=classes.includes(prev)?prev:"all";currentClass=sel.value;
+}
+function setClassFilter(v){currentClass=v;deleteSelected_ids.clear();renderDashboard();}
+function getVisibleStudents(){return currentClass==="all"?allStudents:allStudents.filter(s=>s.className===currentClass);}
+function renderDashboard(){renderStats();renderBarChart();renderStudents();}
+function renderStats(){
+  const base=getVisibleStudents();
+  const avg=base.length?Math.round(base.reduce((s,st)=>s+getPct(st),0)/base.length):0;
+  const done=base.filter(s=>getPct(s)===100).length;
+  const behind=base.filter(s=>getPct(s)<40).length;
+  let unansweredCount=0;
+  base.forEach(s=>{
+    const hist=s.memoHistory||[];
+    hist.forEach(h=>{if(h.type==="review"&&!h.teacherComment)unansweredCount++;});
+  });
+  document.getElementById("stats-grid").innerHTML=[
+    {label:"表示人数",value:base.length+"人",color:"#3EC8E8",icon:"👥"},
+    {label:"クラス平均",value:avg+"%",color:"#F0A030",icon:"📊"},
+    {label:"完了者",value:done+"人",color:"#00D4AA",icon:"✅"},
+    {label:"未返信の分析",value:unansweredCount+"件",color:"#FFD700",icon:"💬"},
+  ].map(s=>`<div class="card-t"><div class="stat-lbl">${s.icon} ${s.label}</div><div class="stat-val" style="color:${s.color};">${s.value}</div></div>`).join("");
+}
+function renderBarChart(){
+  const base=getVisibleStudents();
+  document.getElementById("bar-chart").innerHTML=LESSONS.map(l=>{
+    const r=base.length?Math.round(base.filter(s=>getLessonPct(s,l.id)===100).length/base.length*100):0;
+    const hourShort=l.hour.replace("第","").replace("時","");
+    return`<div class="bar-col"><div class="bar-label">${hourShort}</div><div class="bar-track"><div class="bar-fill" style="height:${r}%;min-height:${r>0?3:0}px;background:${l.accent};"></div></div><div class="bar-pct" style="color:${l.accent};">${r}%</div><div style="font-size:11px;">${l.icon}</div></div>`;
+  }).join("");
+}
+function setView(v){currentView=v;document.querySelectorAll(".toggle-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===v));renderStudents();}
+function setFilter(f){currentFilter=f;document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b.dataset.f===f));renderStudents();}
+function toggleDeleteMode(){
+  deleteMode=!deleteMode;deleteSelected_ids.clear();
+  document.getElementById("delete-mode-btn").textContent=deleteMode?"✕ キャンセル":"🗑️ 削除モード";
+  document.getElementById("delete-mode-btn").style.background=deleteMode?"rgba(232,52,10,.25)":"rgba(232,52,10,.12)";
+  document.getElementById("delete-bar").style.display=deleteMode?"flex":"none";
+  renderStudents();
+}
+function toggleDeleteCheck(id,checked){if(checked)deleteSelected_ids.add(id);else deleteSelected_ids.delete(id);}
+async function deleteSelected(){
+  if(!deleteSelected_ids.size){showToast("⚠️ 削除する生徒を選んでください");return;}
+  const names=[...deleteSelected_ids].map(id=>allStudents.find(s=>s.id===id)?.name||id).join("、");
+  if(!confirm(`「${names}」のデータを削除しますか？\nこの操作は取り消せません。`))return;
+  try{await Promise.all([...deleteSelected_ids].map(id=>db.ref(DB_ROOT+"/students/"+id).remove()));showToast(`🗑️ ${deleteSelected_ids.size}人のデータを削除しました`);deleteSelected_ids.clear();await fetchAll();}catch{showToast("⚠️ 削除に失敗しました");}
+}
+
+function renderStudents(){
+  const sortBy=document.getElementById("sort-sel").value;
+  let list=getVisibleStudents()
+    .filter(s=>{if(currentFilter==="done")return getPct(s)===100;if(currentFilter==="mid")return getPct(s)>=40&&getPct(s)<100;if(currentFilter==="behind")return getPct(s)<40;return true;})
+    .sort((a,b)=>{if(sortBy==="pct")return getPct(b)-getPct(a);if(sortBy==="name")return a.name.localeCompare(b.name,"ja");if(sortBy==="time")return new Date(b.updatedAt)-new Date(a.updatedAt);return 0;});
+  document.getElementById("count-lbl").textContent=list.length+"人";
+  if(!list.length&&!allStudents.length){document.getElementById("t-content").innerHTML=`<div class="empty-box card-t"><div class="empty-icon">📭</div><div class="empty-title">まだ生徒のデータがありません</div><div class="empty-sub">子ども用ポータルで名前と組を入力してもらうと表示されます</div></div>`;return;}
+  if(!list.length){document.getElementById("t-content").innerHTML=`<div class="empty-box"><div class="empty-sub">該当する生徒がいません</div></div>`;return;}
+  if(currentView==="cards")renderCards(list);
+  if(currentView==="matrix")renderMatrix(list);
+  if(currentView==="memos")renderMemos(list);
+}
+
+function renderCards(list){
+  document.getElementById("t-content").innerHTML=`<div class="student-grid">${list.map(s=>{
+    const p=getPct(s);const isSel=s.id===selectedId;const isChecked=deleteSelected_ids.has(s.id);
+    const deleteCheck=deleteMode?`<label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:8px;"><input type="checkbox" ${isChecked?"checked":""} onchange="toggleDeleteCheck('${s.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--red);cursor:pointer;"><span style="font-size:11px;color:var(--red);font-weight:900;">削除対象にする</span></label>`:"";
+    const dots=LESSONS.map(l=>{const lp=getLessonPct(s,l.id);return`<div class="dot" title="${l.hour} ${lp}%" style="background:${lp===100?l.accent:lp>0?l.accent+"38":"rgba(255,255,255,.05)"};color:${lp===100?"#fff":lp>0?l.accent:"#3A5070"};">${lp===100?"✓":lp>0?"·":""}</div>`;}).join("");
+    const evalBadges=s.selfEval?RUBRICS.map(r=>{const g=s.selfEval[r.id];return g?`<span style="font-size:10px;background:${g==="A"?"rgba(0,212,170,.15)":g==="B"?"rgba(240,160,48,.15)":"rgba(232,64,144,.15)"};color:${g==="A"?"var(--teal)":g==="B"?"var(--amber)":"var(--pink)"};padding:2px 6px;border-radius:4px;font-weight:900;">${r.icon}${g}</span>`:""}).join(" "):"";
+    const hist=s.memoHistory||[];
+    const unanswered=hist.filter(h=>h.type==="review"&&!h.teacherComment).length;
+    const unansweredBadge=unanswered?`<span style="font-size:9px;background:rgba(255,215,0,.2);color:var(--gold);padding:2px 7px;border-radius:100px;font-weight:900;margin-left:4px;">💬 未返信${unanswered}</span>`:"";
+    const detail=isSel&&!deleteMode?LESSONS.map(l=>{const lp=getLessonPct(s,l.id);return`<div class="detail-row"><span class="detail-lbl">${l.hour}</span><div class="detail-track"><div class="detail-fill" style="width:${lp}%;background:${l.accent};"></div></div><span class="detail-pct" style="color:${pctColor(lp)};">${lp}%</span></div>`;}).join(""):"";
+    const memoSnippet=isSel&&!deleteMode?(()=>{
+      if(hist.length){
+        const plans=[...hist.filter(h=>h.type==="plan")].reverse();
+        const reviews=[...hist.filter(h=>h.type==="review")].reverse();
+        const showPlans=plans.slice(0,2);const showReviews=reviews.slice(0,2);
+        const maxShow=Math.max(showPlans.length,showReviews.length);
+        if(!maxShow)return"";
+        let rows="";
+        for(let i=0;i<maxShow;i++){
+          const p=showPlans[i];const r=showReviews[i];
+          rows+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">
+            <div style="font-size:10px;color:var(--muted);background:rgba(255,255,255,.03);padding:6px 8px;border-radius:6px;border-left:2px solid var(--cyan);${p?"":"opacity:.3;"}">${p?`<div style="font-size:9px;color:var(--muted);margin-bottom:2px;">${fmtShort(p.date)}</div>${esc(p.text).substring(0,60)}${p.text.length>60?"…":""}`:"—"}</div>
+            <div style="font-size:10px;color:var(--muted);background:rgba(255,255,255,.03);padding:6px 8px;border-radius:6px;border-left:2px solid var(--green);${r?"":"opacity:.3;"}">${r?`<div style="font-size:9px;color:var(--muted);margin-bottom:2px;">${fmtShort(r.date)}</div>${esc(r.text).substring(0,60)}${r.text.length>60?"…":""}${r.teacherComment?'<div style="margin-top:4px;font-size:8px;color:var(--gold);font-weight:900;">💬 コメント済</div>':""}`:"—"}</div>
+          </div>`;
+        }
+        const totalPairs=Math.max(plans.length,reviews.length);
+        return`<div class="memo-snippet" style="padding:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">
+            <div style="font-size:9px;font-weight:900;color:var(--cyan);text-align:center;">📋 計画</div>
+            <div style="font-size:9px;font-weight:900;color:var(--green);text-align:center;">💡 分析</div>
+          </div>
+          ${rows}
+          ${totalPairs>2?`<div style="font-size:10px;color:var(--muted);text-align:center;">…他${totalPairs-2}回分</div>`:""}
+          <div style="text-align:center;margin-top:6px;"><button onclick="event.stopPropagation();jumpToMemoView('${s.id}')" style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);color:var(--gold);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:900;cursor:pointer;font-family:var(--font);">💬 コメントを書く →</button></div>
+        </div>`;
+      }
+      if(s.memoPlan?.trim()||s.memoReview?.trim()){
+        return`<div class="memo-snippet"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${s.memoPlan?.trim()?`<div style="border-left:2px solid var(--cyan);padding-left:8px;font-size:10px;"><span style="color:var(--cyan);font-weight:900;">計画</span><br>${s.memoPlan}</div>`:'<div style="opacity:.3;font-size:10px;">—</div>'}${s.memoReview?.trim()?`<div style="border-left:2px solid var(--green);padding-left:8px;font-size:10px;"><span style="color:var(--green);font-weight:900;">分析</span><br>${s.memoReview}</div>`:'<div style="opacity:.3;font-size:10px;">—</div>'}</div></div>`;
+      }
+      return"";
+    })():"";
+    return`<div class="student-card${isSel&&!deleteMode?" selected":""}" onclick="${deleteMode?"":"selectStudent('"+s.id+"')"}" style="${isChecked?"border-color:var(--red);box-shadow:0 0 0 2px rgba(232,52,10,.2);":""}">
+      ${deleteCheck}
+      <div class="row" style="justify-content:space-between;margin-bottom:10px;"><div><div style="font-size:15px;font-weight:900;">${s.name}${unansweredBadge}</div><div style="font-size:11px;color:#5A7090;">${s.className||"—"}</div></div><div class="sc-pct-badge" style="color:${pctColor(p)};background:${pctColor(p)}18;">${p}%</div></div>
+      <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${p}%;background:${pctColor(p)};"></div></div>
+      <div class="dot-row">${dots}</div>
+      ${evalBadges?`<div style="margin-bottom:6px;">${evalBadges}</div>`:""}
+      <div style="font-size:10px;color:#3A5070;">${LESSONS.filter(l=>getLessonPct(s,l.id)===100).length}/14時間 · ${timeSince(s.updatedAt)}</div>
+      ${isSel&&!deleteMode?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2);">${detail}${memoSnippet}</div>`:""}
+    </div>`;
+  }).join("")}</div>`;
+}
+function selectStudent(id){selectedId=(selectedId===id?null:id);renderStudents();}
+function jumpToMemoView(sid){selectedId=sid;setView("memos");document.querySelectorAll(".toggle-btn").forEach(b=>b.classList.toggle("active",b.dataset.view==="memos"));}
+
+function renderMatrix(list){
+  const headers=["名前","組",...LESSONS.map(l=>l.hour.replace("第","").replace("時","")+"h"),"全体","自己評価","更新"];
+  const rows=list.map(s=>{
+    const p=getPct(s);
+    const cells=LESSONS.map(l=>{const lp=getLessonPct(s,l.id);return`<td><div class="matrix-cell" style="background:${lp===100?l.accent:lp>0?l.accent+"28":"rgba(255,255,255,.04)"};color:${lp===100?"#fff":lp>0?l.accent:"#3A5070"};">${lp===100?"✓":lp>0?lp:"—"}</div></td>`;}).join("");
+    const evals=s.selfEval?RUBRICS.map(r=>s.selfEval[r.id]||"—").join("/"):"—";
+    return`<tr><td style="font-size:13px;font-weight:900;white-space:nowrap;">${s.name}</td><td style="font-size:11px;color:#5A7090;white-space:nowrap;">${s.className||"—"}</td>${cells}<td style="text-align:center;"><span style="font-size:14px;font-weight:900;color:${pctColor(p)};">${p}%</span></td><td style="text-align:center;font-size:11px;color:var(--muted);">${evals}</td><td style="text-align:center;font-size:10px;color:#3A5070;white-space:nowrap;">${timeSince(s.updatedAt)}</td></tr>`;
+  }).join("");
+  document.getElementById("t-content").innerHTML=`<div class="matrix-wrap"><table class="matrix-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function renderMemos(list){
+  const withMemo=list.filter(s=>(s.memoHistory&&s.memoHistory.length)||s.memoPlan?.trim()||s.memoReview?.trim());
+  if(!withMemo.length){document.getElementById("t-content").innerHTML=`<div class="empty-box"><div class="empty-sub">📝 まだメモが送信されていません</div></div>`;return;}
+  document.getElementById("t-content").innerHTML=`
+    <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:var(--gold);font-weight:700;line-height:1.6;">
+      💡 <strong>AI下書き→コメント配信の流れ：</strong>
+      ① 分析メモの「🤖 AI下書き生成」ボタンを押す → ② プロンプトをコピーしてClaudeに貼り付け → ③ 返ってきた内容を編集欄に貼り付け → ④ 「💬 配信」ボタンで子ども画面に表示
+    </div>
+    <div class="memo-view">${withMemo.map(s=>{
+    const hist=s.memoHistory||[];
+    let bodyHtml="";
+    if(hist.length){
+      const plans=[...hist.filter(h=>h.type==="plan")].reverse();
+      const reviews=[...hist.filter(h=>h.type==="review")].reverse();
+      const maxLen=Math.max(plans.length,reviews.length);
+      bodyHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <div style="font-size:10px;font-weight:900;color:var(--cyan);text-align:center;">📋 計画</div>
+        <div style="font-size:10px;font-weight:900;color:var(--green);text-align:center;">💡 分析</div>
+      </div>`;
+      for(let i=0;i<maxLen;i++){
+        const p=plans[i];const r=reviews[i];
+        let editorHtml="";
+        if(r){
+          const hasComment=!!r.teacherComment;
+          editorHtml=`
+            <div class="tc-editor" id="tc-editor-${s.id}-${r.id}">
+              <div class="tc-editor-row">
+                <button class="tc-gen-btn" onclick="openPromptModal('${s.id}','${r.id}')">🤖 AI下書き生成</button>
+                <span class="tc-status ${hasComment?'published':''}">${hasComment?"✅ 配信済み":"未返信"}</span>
+              </div>
+              <textarea class="tc-textarea" id="tc-text-${s.id}-${r.id}" placeholder="ここに先生コメントを入力（またはAI下書きを貼り付け）…">${esc(r.teacherComment||"")}</textarea>
+              <div class="tc-editor-row" style="margin-top:6px;margin-bottom:0;">
+                <button class="tc-save-btn" onclick="saveTeacherComment('${s.id}','${r.id}')">💬 配信する</button>
+                ${hasComment?`<button class="tc-del-btn" onclick="deleteTeacherComment('${s.id}','${r.id}')">🗑️ 削除</button>`:""}
+              </div>
+            </div>`;
+        }
+        bodyHtml+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;align-items:flex-start;">
+          <div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;${p?"":"opacity:.3;"}">
+            ${p?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">📅 ${fmtDate(p.date)}</div>
+            <div style="font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;">${esc(p.text)}</div>`
+            :`<div style="font-size:11px;color:#3A5070;padding:4px;">—</div>`}
+          </div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;${r?"":"opacity:.3;"}">
+            ${r?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">📅 ${fmtDate(r.date)}</div>
+            <div style="font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;">${esc(r.text)}</div>
+            ${editorHtml}`
+            :`<div style="font-size:11px;color:#3A5070;padding:4px;">—</div>`}
+          </div>
+        </div>`;
+      }
+    } else {
+      bodyHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><div style="font-size:10px;font-weight:900;color:var(--cyan);margin-bottom:5px;">📋 計画</div><div class="memo-body" style="border-left:2px solid var(--cyan);padding-left:10px;">${s.memoPlan?.trim()||'<span style="color:#3A5070;font-style:italic;">未記入</span>'}</div></div>
+        <div><div style="font-size:10px;font-weight:900;color:var(--green);margin-bottom:5px;">💡 分析</div><div class="memo-body" style="border-left:2px solid var(--green);padding-left:10px;">${s.memoReview?.trim()||'<span style="color:#3A5070;font-style:italic;">未記入</span>'}</div></div>
+      </div>`;
+    }
+    const cnt=hist.length;
+    const unanswered=hist.filter(h=>h.type==="review"&&!h.teacherComment).length;
+    return`<div class="memo-card">
+      <div class="row" style="justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;">
+        <span style="font-size:14px;font-weight:900;">${s.name} <span style="font-size:11px;color:#5A7090;font-weight:400;">${s.className}</span>${unanswered?`<span style="font-size:10px;background:rgba(255,215,0,.2);color:var(--gold);padding:2px 8px;border-radius:100px;font-weight:900;margin-left:6px;">💬 未返信${unanswered}</span>`:""}</span>
+        <span style="font-size:11px;color:#5A7090;">${cnt?cnt+"件送信":""} · ${timeSince(s.updatedAt)}</span>
+      </div>
+      ${bodyHtml}
+    </div>`;
+  }).join("")}</div>`;
+}
+
+// ─── AI PROMPT GENERATION ────────────────────────────────────────────────────
+let currentPromptContext=null;
+
+function buildPrompt(student,reviewEntry){
+  const lines=[];
+  lines.push("あなたは小学校6年生の担任の先生として、子どもが書いた学習の振り返りに温かいコメントを返します。");
+  lines.push("");
+  lines.push("【教育フレームワーク】");
+  lines.push("以下の3つの視点を使って、子どもの学びを評価・励ましてください。");
+  lines.push("");
+  lines.push("■ けテぶれ：計画(け)→テスト(テ)→分析(ぶ)→練習(れ) の学習サイクル");
+  lines.push("  - 自分の学びをメタ認知できているか");
+  lines.push("  - 間違いの原因を分析できているか");
+  lines.push("  - 次の練習につなげようとしているか");
+  lines.push("");
+  lines.push("■ QNKS：Question(問い)→Note(メモ)→Knowledge(知識化)→Self-evaluation/Share(自己評価・共有)");
+  lines.push("  - 自分の問いを持てているか");
+  lines.push("  - 学んだことを自分の知識として整理できているか");
+  lines.push("");
+  lines.push("■ 心マトリクス（4象限）");
+  lines.push("  - 縦軸：自分で考えて取り組む ↕ 考えずに取り組まない");
+  lines.push("  - 横軸：人と思いやりをもって協力する ↔ 自分のことばかり考えて迷惑をかける");
+  lines.push("  - 右上（自分で考える×協力）が最高の状態。子どもの記述からどの象限にいそうか見取って、よりよい方向へ促す。");
+  lines.push("");
+  lines.push("【算数用語チェック】");
+  lines.push("単元：小学校6年算数「線対称と点対称」（東京書籍版・全14時間構成）");
+  lines.push("主な用語：対称の軸、対称の中心、対応する点、対応する辺、対応する角、垂直、二等分、180°回転、正多角形");
+  lines.push("→ 用語が正しく使われているか、または使えそうな場面で使えていないかを見て、それとなく促してください。");
+  lines.push("");
+  lines.push("【単元のビッグクエスチョン】");
+  lines.push("「美しさのヒミツを解き明かそう！〜私たちの身の回りにある『ピッタリ』の法則とは？〜」");
+  lines.push("→ 身の回りのデザインや自然物の中に潜む対称性の美しさに気づく単元です。");
+  lines.push("");
+  lines.push("【子どもの情報】");
+  lines.push("名前：" + student.name);
+  lines.push("組：" + (student.className||""));
+  lines.push("全体の進捗：" + getPct(student) + "%");
+  lines.push("");
+  lines.push("【授業チェック状況】");
+  LESSONS.forEach(l=>{
+    const lp=getLessonPct(student,l.id);
+    const cs=student.checks?.[l.id]||{};
+    const checkDetails=l.checks.map((t,i)=>`    ${cs[i]?"✓":"□"} ${t}`).join("\n");
+    lines.push(`${l.hour} ${l.title}（${lp}%）`);
+    lines.push(checkDetails);
+  });
+  lines.push("");
+  lines.push("【自己評価】");
+  RUBRICS.forEach(r=>{
+    const g=student.selfEval?.[r.id]||"—";
+    lines.push(`${r.name}：${g}`);
+    if(g&&g!=="—"&&r.grades[g]){
+      lines.push("  → " + r.grades[g]);
+    }
+  });
+  lines.push("");
+  const hist=student.memoHistory||[];
+  const sorted=[...hist].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  lines.push("【これまでのけテぶれノート履歴（古い→新しい順）】");
+  if(sorted.length){
+    sorted.forEach(h=>{
+      const label=h.type==="plan"?"📋 計画":"💡 分析";
+      const isTarget=h.id===reviewEntry.id?" ← ★今回コメントを書く対象★":"";
+      lines.push(`[${fmtDate(h.date)}] ${label}${isTarget}`);
+      lines.push(h.text);
+      if(h.teacherComment){
+        lines.push(`  (前回の先生コメント: ${h.teacherComment.substring(0,80)}${h.teacherComment.length>80?"…":""})`);
+      }
+      lines.push("");
+    });
+  } else {
+    lines.push("（履歴なし）");
+    lines.push("");
+  }
+  lines.push("【今回コメントする分析（再掲）】");
+  lines.push(`日時：${fmtDate(reviewEntry.date)}`);
+  lines.push(reviewEntry.text);
+  lines.push("");
+  lines.push("【コメントの要件】");
+  lines.push("1. 小学校6年生が読んで理解できる、やさしく温かい言葉で書く");
+  lines.push("2. 150〜250文字程度（短すぎず長すぎず）");
+  lines.push("3. まず具体的によかったところを認める（けテぶれ／QNKS／心マトリクスの観点で）");
+  lines.push("4. 算数用語の使い方について、必要なら優しく促す（できているなら褒める）");
+  lines.push("5. 次の学習への具体的なアドバイスを1つ入れる");
+  lines.push("6. 最後は励まし・モチベーションを高める一言で締めくくる");
+  lines.push("7. 絵文字は1〜2個までに抑える（多すぎるとチャラくなる）");
+  lines.push("8. 説明や前置きは一切不要。コメント本文だけを出力する。");
+  lines.push("");
+  lines.push("では、上記の子どもの「今回コメントする分析」に対する先生コメントを書いてください。");
+  return lines.join("\n");
+}
+
+function openPromptModal(sid,entryId){
+  const student=allStudents.find(s=>s.id===sid);
+  if(!student){showToast("⚠️ 生徒データが見つかりません");return;}
+  const hist=student.memoHistory||[];
+  const entry=hist.find(h=>h.id===entryId);
+  if(!entry){showToast("⚠️ 分析メモが見つかりません");return;}
+  currentPromptContext={sid,entryId};
+  const prompt=buildPrompt(student,entry);
+  document.getElementById("prompt-text").value=prompt;
+  document.getElementById("prompt-modal").classList.add("show");
+}
+function closePromptModal(){
+  document.getElementById("prompt-modal").classList.remove("show");
+  currentPromptContext=null;
+}
+async function copyPrompt(){
+  const text=document.getElementById("prompt-text").value;
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast("📋 プロンプトをコピーしました！Claudeに貼り付けてください");
+  }catch{
+    const ta=document.getElementById("prompt-text");
+    ta.select();document.execCommand("copy");
+    showToast("📋 プロンプトをコピーしました！");
+  }
+}
+
+// ─── SAVE / DELETE TEACHER COMMENT ───────────────────────────────────────────
+async function saveTeacherComment(sid,entryId){
+  const ta=document.getElementById(`tc-text-${sid}-${entryId}`);
+  if(!ta)return;
+  const text=ta.value.trim();
+  if(!text){showToast("⚠️ コメントを入力してください");return;}
+  const student=allStudents.find(s=>s.id===sid);
+  if(!student){showToast("⚠️ 生徒が見つかりません");return;}
+  const hist=student.memoHistory||[];
+  const idx=hist.findIndex(h=>h.id===entryId);
+  if(idx<0){showToast("⚠️ メモが見つかりません");return;}
+  hist[idx].teacherComment=text;
+  hist[idx].teacherCommentAt=new Date().toISOString();
+  try{
+    await db.ref(DB_ROOT+"/students/"+sid+"/memoHistory").set(hist);
+    showToast("💬 コメントを配信しました！");
+    student.memoHistory=hist;
+    renderStats();renderStudents();
+  }catch(e){showToast("⚠️ 配信に失敗しました");}
+}
+async function deleteTeacherComment(sid,entryId){
+  if(!confirm("先生コメントを削除しますか？"))return;
+  const student=allStudents.find(s=>s.id===sid);
+  if(!student)return;
+  const hist=student.memoHistory||[];
+  const idx=hist.findIndex(h=>h.id===entryId);
+  if(idx<0)return;
+  delete hist[idx].teacherComment;
+  delete hist[idx].teacherCommentAt;
+  try{
+    await db.ref(DB_ROOT+"/students/"+sid+"/memoHistory").set(hist);
+    showToast("🗑️ コメントを削除しました");
+    student.memoHistory=hist;
+    renderStats();renderStudents();
+  }catch(e){showToast("⚠️ 削除に失敗しました");}
+}
+
+// ─── GOOGLE FORM URL ─────────────────────────────────────────────────────────
+async function loadFormUrl(){
+  try{
+    const snap=await db.ref(DB_ROOT+"/settings/formUrl").once("value");
+    const url=snap.val()||"";
+    if(url){
+      const section=document.getElementById("form-section");
+      const iframe=document.getElementById("form-iframe");
+      if(section&&iframe){
+        let embedUrl=url;
+        if(url.includes("/viewform")){embedUrl=url;}
+        else if(url.includes("/edit")){embedUrl=url.replace("/edit","/viewform");}
+        else if(!url.includes("/viewform")){embedUrl=url+(url.endsWith("/")?"":"/")+"viewform";}
+        embedUrl+=(embedUrl.includes("?")?"&":"?")+"embedded=true";
+        iframe.src=embedUrl;
+        section.style.display="block";
+      }
+      const inp=document.getElementById("form-url-inp");
+      const status=document.getElementById("form-url-status");
+      if(inp)inp.value=url;
+      if(status)status.innerHTML=`<span style="color:var(--teal);">✅ 配信中</span>　<span style="color:var(--muted);font-size:10px;word-break:break-all;">${url.substring(0,60)}…</span>`;
+    } else {
+      const section=document.getElementById("form-section");
+      if(section)section.style.display="none";
+    }
+  }catch{}
+}
+async function saveFormUrl(){
+  const url=document.getElementById("form-url-inp").value.trim();
+  if(!url){showToast("⚠️ URLを入力してください");return;}
+  if(!url.includes("docs.google.com/forms")){showToast("⚠️ GoogleフォームのURLを入力してください");return;}
+  try{
+    await db.ref(DB_ROOT+"/settings/formUrl").set(url);
+    showToast("✅ フォームURLを設定しました");
+    loadFormUrl();
+  }catch{showToast("⚠️ 保存に失敗しました");}
+}
+async function clearFormUrl(){
+  if(!confirm("フォームURLを削除しますか？\n子ども画面からフォームが非表示になります。"))return;
+  try{
+    await db.ref(DB_ROOT+"/settings/formUrl").remove();
+    document.getElementById("form-url-inp").value="";
+    document.getElementById("form-url-status").innerHTML="URLを設定すると、子ども画面の下部にフォームが埋め込まれます";
+    const section=document.getElementById("form-section");
+    if(section)section.style.display="none";
+    showToast("🗑️ フォームURLを削除しました");
+  }catch{showToast("⚠️ 削除に失敗しました");}
+}
+
+// ─── COMMENT IMPORT (xlsx/csv) ───────────────────────────────────────────────
+let pendingImport=null;
+
+async function handleCommentImport(ev){
+  const file=ev.target.files[0];
+  if(!file){return;}
+  ev.target.value="";
+  try{
+    const rows=await parseFileToRows(file);
+    if(!rows.length){showToast("⚠️ データが読み取れません");return;}
+    planImport(rows);
+  }catch(e){
+    console.error(e);
+    showToast("⚠️ ファイルの読み込みに失敗しました");
+  }
+}
+
+async function parseFileToRows(file){
+  const name=file.name.toLowerCase();
+  const buf=await file.arrayBuffer();
+  let workbook;
+  if(name.endsWith(".csv")){
+    let text;
+    const bytes=new Uint8Array(buf);
+    if(bytes[0]===0xEF&&bytes[1]===0xBB&&bytes[2]===0xBF){
+      text=new TextDecoder("utf-8").decode(bytes.slice(3));
+    } else {
+      text=new TextDecoder("utf-8").decode(bytes);
+    }
+    workbook=XLSX.read(text,{type:"string"});
+  } else {
+    workbook=XLSX.read(buf,{type:"array"});
+  }
+  const sheetName=workbook.SheetNames[0];
+  const sheet=workbook.Sheets[sheetName];
+  const aoa=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
+  if(aoa.length<2)return[];
+  const headers=aoa[0].map(h=>String(h||"").trim());
+  const rows=aoa.slice(1).map(r=>{
+    const obj={};
+    headers.forEach((h,i)=>{obj[h]=String(r[i]||"").trim();});
+    return obj;
+  });
+  return rows;
+}
+
+function findCol(row,candidates){
+  const keys=Object.keys(row);
+  for(const c of candidates){
+    const exact=keys.find(k=>k===c);
+    if(exact)return exact;
+  }
+  for(const c of candidates){
+    const partial=keys.find(k=>k.includes(c));
+    if(partial)return partial;
+  }
+  return null;
+}
+
+function planImport(rows){
+  const sample=rows[0]||{};
+  const colName   =findCol(sample,["名前","氏名","生徒名"]);
+  const colClass  =findCol(sample,["組","クラス","所属"]);
+  const colDate   =findCol(sample,["分析日時","日時","送信日時","日付"]);
+  const colComment=findCol(sample,["先生コメント","コメント","返信","フィードバック"]);
+
+  if(!colName||!colComment){
+    showToast("⚠️ 「名前」と「先生コメント」の列が見つかりません");
+    return;
+  }
+
+  const applyPlan=[];
+  const unmatched=[];
+
+  rows.forEach((r,idx)=>{
+    const name=(r[colName]||"").trim();
+    const cls=colClass?(r[colClass]||"").trim():"";
+    const dateStr=colDate?(r[colDate]||"").trim():"";
+    const newComment=(r[colComment]||"").trim();
+
+    if(!name)return;
+    if(!newComment)return;
+
+    const student=findStudentByNameClass(name,cls);
+    if(!student){
+      unmatched.push({row:idx+2,name,cls,reason:"生徒が見つかりません",newComment});
+      return;
+    }
+
+    const hist=student.memoHistory||[];
+    const reviews=hist.filter(h=>h.type==="review").sort((a,b)=>new Date(a.date)-new Date(b.date));
+    if(!reviews.length){
+      unmatched.push({row:idx+2,name,cls,reason:"分析メモが未送信",newComment});
+      return;
+    }
+
+    let targetReview=null;
+    if(dateStr){
+      targetReview=reviews.find(r=>{
+        const formatted=fmtDate(r.date);
+        return formatted===dateStr||formatted.startsWith(dateStr)||dateStr.startsWith(formatted);
+      });
+    }
+    if(!targetReview){
+      if(reviews.length>1&&!dateStr){
+        unmatched.push({row:idx+2,name,cls,reason:"分析が複数あり日時不明",newComment});
+        return;
+      }
+      targetReview=reviews[reviews.length-1];
+    }
+
+    const oldComment=targetReview.teacherComment||"";
+    if(oldComment===newComment)return;
+
+    applyPlan.push({
+      sid:student.id,
+      entryId:targetReview.id,
+      studentName:student.name,
+      className:student.className||"",
+      date:targetReview.date,
+      reviewText:targetReview.text,
+      newComment,
+      oldComment,
+      isOverwrite:!!oldComment
+    });
+  });
+
+  pendingImport={applyPlan,unmatched};
+  showImportModal();
+}
+
+function findStudentByNameClass(name,cls){
+  const nName=normalizeStr(name);
+  const nCls=normalizeStr(cls);
+  if(nCls){
+    const exact=allStudents.find(s=>normalizeStr(s.name)===nName&&normalizeStr(s.className||"")===nCls);
+    if(exact)return exact;
+  }
+  const byName=allStudents.filter(s=>normalizeStr(s.name)===nName);
+  if(byName.length===1)return byName[0];
+  return null;
+}
+
+function showImportModal(){
+  const {applyPlan,unmatched}=pendingImport;
+  const newCount=applyPlan.filter(p=>!p.isOverwrite).length;
+  const overwriteCount=applyPlan.filter(p=>p.isOverwrite).length;
+
+  document.getElementById("import-summary").innerHTML=`
+    <div style="background:rgba(0,212,170,.12);border:1px solid rgba(0,212,170,.3);border-radius:10px;padding:8px 14px;">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;">✅ 新規追加</div>
+      <div style="font-size:20px;font-weight:900;color:var(--teal);">${newCount}件</div>
+    </div>
+    <div style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);border-radius:10px;padding:8px 14px;">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;">⚠️ 上書き</div>
+      <div style="font-size:20px;font-weight:900;color:var(--gold);">${overwriteCount}件</div>
+    </div>
+    <div style="background:rgba(232,64,144,.1);border:1px solid rgba(232,64,144,.25);border-radius:10px;padding:8px 14px;">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;">❓ 不一致</div>
+      <div style="font-size:20px;font-weight:900;color:var(--pink);">${unmatched.length}件</div>
+    </div>
+  `;
+
+  let html="";
+  if(applyPlan.length){
+    html+=`<div style="font-size:11px;font-weight:900;color:var(--muted);margin-bottom:8px;">反映される内容（${applyPlan.length}件）</div>`;
+    applyPlan.forEach(p=>{
+      const badge=p.isOverwrite
+        ?`<span style="background:rgba(255,215,0,.2);color:var(--gold);font-size:9px;font-weight:900;padding:2px 7px;border-radius:100px;">⚠️ 上書き</span>`
+        :`<span style="background:rgba(0,212,170,.2);color:var(--teal);font-size:9px;font-weight:900;padding:2px 7px;border-radius:100px;">✅ 新規</span>`;
+      html+=`<div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+          <span style="font-size:12px;font-weight:900;">${esc(p.studentName)}</span>
+          <span style="font-size:10px;color:var(--muted);">${esc(p.className)} · ${fmtDate(p.date)}</span>
+          ${badge}
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">分析：${esc(p.reviewText.substring(0,80))}${p.reviewText.length>80?"…":""}</div>
+        ${p.isOverwrite?`<div style="font-size:10px;color:var(--muted);background:rgba(232,64,144,.08);padding:4px 8px;border-radius:5px;margin-bottom:3px;"><span style="color:var(--pink);font-weight:900;">旧：</span>${esc(p.oldComment.substring(0,100))}${p.oldComment.length>100?"…":""}</div>`:""}
+        <div style="font-size:11px;color:var(--text);background:rgba(255,215,0,.08);border-left:3px solid var(--gold);padding:5px 8px;border-radius:4px;"><span style="color:var(--gold);font-weight:900;">${p.isOverwrite?"新：":"💬 "}</span>${esc(p.newComment)}</div>
+      </div>`;
+    });
+  } else {
+    html+=`<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">反映できる新しいコメントはありません</div>`;
+  }
+  if(unmatched.length){
+    html+=`<div style="font-size:11px;font-weight:900;color:var(--pink);margin:12px 0 8px;">不一致（スキップ）</div>`;
+    unmatched.forEach(u=>{
+      html+=`<div style="background:rgba(232,64,144,.05);border:1px dashed rgba(232,64,144,.2);border-radius:6px;padding:6px 10px;margin-bottom:4px;font-size:11px;color:var(--muted);">
+        行${u.row}：${esc(u.name)}（${esc(u.cls||"")}） → ${u.reason}
+      </div>`;
+    });
+  }
+  document.getElementById("import-preview").innerHTML=html;
+
+  const btn=document.getElementById("import-confirm-btn");
+  if(applyPlan.length){
+    btn.disabled=false;btn.style.opacity="1";
+    btn.textContent=overwriteCount>0
+      ?`⚠️ ${overwriteCount}件を上書きして反映する（計${applyPlan.length}件）`
+      :`✅ ${applyPlan.length}件を反映する`;
+  } else {
+    btn.disabled=true;btn.style.opacity=".4";
+    btn.textContent="反映できる内容がありません";
+  }
+
+  document.getElementById("import-modal").classList.add("show");
+}
+
+function closeImportModal(){
+  document.getElementById("import-modal").classList.remove("show");
+  pendingImport=null;
+}
+
+async function confirmImport(){
+  if(!pendingImport||!pendingImport.applyPlan.length)return;
+  const btn=document.getElementById("import-confirm-btn");
+  btn.disabled=true;btn.textContent="⏳ 反映中…";
+
+  const byStudent=new Map();
+  pendingImport.applyPlan.forEach(p=>{
+    if(!byStudent.has(p.sid))byStudent.set(p.sid,[]);
+    byStudent.get(p.sid).push(p);
+  });
+
+  let okCount=0,failCount=0;
+  const now=new Date().toISOString();
+
+  for(const [sid,items] of byStudent){
+    const student=allStudents.find(s=>s.id===sid);
+    if(!student){failCount+=items.length;continue;}
+    const hist=student.memoHistory||[];
+    items.forEach(p=>{
+      const idx=hist.findIndex(h=>h.id===p.entryId);
+      if(idx>=0){
+        hist[idx].teacherComment=p.newComment;
+        hist[idx].teacherCommentAt=now;
+        okCount++;
+      } else {
+        failCount++;
+      }
+    });
+    try{
+      await db.ref(DB_ROOT+"/students/"+sid+"/memoHistory").set(hist);
+      student.memoHistory=hist;
+    } catch(e){
+      console.error(e);
+      failCount+=items.length;okCount-=items.length;
+    }
+  }
+
+  closeImportModal();
+  if(failCount){
+    showToast(`📤 ${okCount}件反映・${failCount}件失敗`);
+  } else {
+    showToast(`📤 ${okCount}件のコメントを反映しました！`);
+  }
+  renderStats();renderStudents();
+}
+
+// ─── CSV EXPORT ──────────────────────────────────────────────────────────────
+function escapeCSV(val){
+  if(val==null)return"";
+  const s=String(val).replace(/\r?\n/g," ").replace(/"/g,'""');
+  return /[",]/.test(s)?`"${s}"`:s;
+}
+function exportCSV(type){
+  const base=getVisibleStudents();
+  if(!base.length){showToast("⚠️ エクスポートする生徒がいません");return;}
+  const now=new Date().toLocaleString("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).replace(/[/: ]/g,"");
+  const UNIT="算数・線対称点対称（東書14時間）";
+  let headers,rows;
+
+  if(type==="memo"){
+    headers=["名前","教科・単元","計画","分析（振り返り）","先生コメント","送信日時"];
+    rows=[];
+    base.forEach(s=>{
+      const hist=s.memoHistory||[];
+      if(hist.length){
+        const plans=hist.filter(h=>h.type==="plan");
+        const reviews=hist.filter(h=>h.type==="review");
+        const maxLen=Math.max(plans.length,reviews.length);
+        for(let i=0;i<maxLen;i++){
+          const plan=plans[i];
+          const review=reviews[i];
+          const dateStr=plan?fmtDate(plan.date):review?fmtDate(review.date):"";
+          rows.push([
+            escapeCSV(s.name),
+            escapeCSV(UNIT),
+            escapeCSV(plan?.text||""),
+            escapeCSV(review?.text||""),
+            escapeCSV(review?.teacherComment||""),
+            dateStr
+          ]);
+        }
+      } else if(s.memoPlan?.trim()||s.memoReview?.trim()){
+        rows.push([
+          escapeCSV(s.name),
+          escapeCSV(UNIT),
+          escapeCSV(s.memoPlan||""),
+          escapeCSV(s.memoReview||""),
+          "",
+          escapeCSV(s.updatedAt||"")
+        ]);
+      }
+    });
+  } else if(type==="eval"){
+    headers=["名前","教科・単元","知識・技能","思考・判断・表現","主体的に学習に取り組む態度"];
+    rows=base.map(s=>[
+      escapeCSV(s.name),
+      escapeCSV(UNIT),
+      escapeCSV(s.selfEval?.skill||""),
+      escapeCSV(s.selfEval?.think||""),
+      escapeCSV(s.selfEval?.attitude||"")
+    ]);
+  } else if(type==="comment_all"||type==="comment_done"){
+    const onlyDone=type==="comment_done";
+    headers=["名前","組","教科・単元","分析日時","対応する計画","対応する計画日時","分析（振り返り）","先生コメント","コメント配信日時"];
+    rows=[];
+    base.forEach(s=>{
+      const hist=s.memoHistory||[];
+      const plans=hist.filter(h=>h.type==="plan").sort((a,b)=>new Date(a.date)-new Date(b.date));
+      const reviews=hist.filter(h=>h.type==="review").sort((a,b)=>new Date(a.date)-new Date(b.date));
+      reviews.forEach((r,i)=>{
+        if(onlyDone&&!r.teacherComment)return;
+        const p=plans[i];
+        rows.push([
+          escapeCSV(s.name),
+          escapeCSV(s.className||""),
+          escapeCSV(UNIT),
+          fmtDate(r.date),
+          escapeCSV(p?.text||""),
+          p?fmtDate(p.date):"",
+          escapeCSV(r.text||""),
+          escapeCSV(r.teacherComment||""),
+          r.teacherCommentAt?fmtDate(r.teacherCommentAt):""
+        ]);
+      });
+      if(!hist.length&&s.memoReview?.trim()){
+        if(onlyDone)return;
+        rows.push([
+          escapeCSV(s.name),
+          escapeCSV(s.className||""),
+          escapeCSV(UNIT),
+          fmtDate(s.updatedAt||""),
+          escapeCSV(s.memoPlan||""),
+          "",
+          escapeCSV(s.memoReview||""),
+          "",
+          ""
+        ]);
+      }
+    });
+    if(!rows.length){
+      showToast(onlyDone?"⚠️ まだコメント済みの分析がありません":"⚠️ 分析メモがまだありません");
+      return;
+    }
+  } else {
+    headers=["名前","教科・単元","計画（最新）","分析・振り返り（最新）","先生コメント（最新）","知識・技能","思考・判断・表現","主体的に学習に取り組む態度","進捗率",...LESSONS.map(l=>l.hour),"更新日時"];
+    rows=base.map(s=>{
+      const hist=s.memoHistory||[];
+      const latestPlan=  [...hist].reverse().find(h=>h.type==="plan");
+      const latestReview=[...hist].reverse().find(h=>h.type==="review");
+      return[
+        escapeCSV(s.name),
+        escapeCSV(UNIT),
+        escapeCSV(latestPlan?.text||s.memoPlan||""),
+        escapeCSV(latestReview?.text||s.memoReview||""),
+        escapeCSV(latestReview?.teacherComment||""),
+        escapeCSV(s.selfEval?.skill||""),
+        escapeCSV(s.selfEval?.think||""),
+        escapeCSV(s.selfEval?.attitude||""),
+        getPct(s)+"%",
+        ...LESSONS.map(l=>getLessonPct(s,l.id)+"%"),
+        escapeCSV(s.updatedAt||"")
+      ];
+    });
+  }
+  const bom="\uFEFF";
+  const csv=bom+[headers.join(","),...rows.map(r=>r.join(","))].join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  const label=type==="eval"?"自己評価":type==="memo"?"メモ":type==="comment_all"?"先生コメント(全)":type==="comment_done"?"先生コメント(済)":"全データ";
+  a.download=`線対称点対称東書14_${label}_${currentClass==="all"?"全クラス":currentClass}_${now}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`📥 ${label}をダウンロードしました`);
+}
+
+// ─── PEER VIEW ───────────────────────────────────────────────────────────────
+let peerData=[];
+let expandedPeer=null;
+
+async function loadPeers(){
+  const el=document.getElementById("peer-list");
+  if(!el||!studentData)return;
+  el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">🔄 読み込み中…</div>`;
+  try{
+    const snap=await db.ref(DB_ROOT+"/students").once("value");
+    const all=snap.val()?Object.values(snap.val()):[];
+    const scope=document.getElementById("peer-scope").value;
+    peerData=scope==="class"
+      ?all.filter(s=>s.className===studentData.className)
+      :all;
+    peerData.sort((a,b)=>getPct(b)-getPct(a));
+    renderPeers();
+  }catch{
+    el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--pink);font-size:12px;">⚠️ 読み込みに失敗しました</div>`;
+  }
+}
+
+function renderPeers(){
+  const el=document.getElementById("peer-list");
+  if(!el)return;
+  const countEl=document.getElementById("peer-count");
+  if(countEl)countEl.textContent=`${peerData.length}人`;
+  const statsEl=document.getElementById("peer-stats");
+  if(statsEl&&peerData.length){
+    const avg=Math.round(peerData.reduce((s,st)=>s+getPct(st),0)/peerData.length);
+    const done=peerData.filter(s=>getPct(s)===100).length;
+    statsEl.innerHTML=`<div style="display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--amber);">${avg}%</div><div style="font-size:10px;color:var(--muted);font-weight:700;">みんなの平均</div></div>
+      <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--teal);">${done}人</div><div style="font-size:10px;color:var(--muted);font-weight:700;">コンプリート</div></div>
+    </div>`;
+  } else if(statsEl){statsEl.innerHTML="";}
+
+  if(!peerData.length){
+    el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">まだデータがありません</div>`;
+    return;
+  }
+  el.innerHTML=`<div class="peer-grid">${peerData.map(s=>{
+    const p=getPct(s);
+    const isMe=s.id===studentData.id;
+    const isExp=expandedPeer===s.id;
+    const dots=LESSONS.map(l=>{
+      const lp=getLessonPct(s,l.id);
+      return`<div class="peer-dot" style="background:${lp===100?l.accent:lp>0?l.accent+"38":"rgba(255,255,255,.05)"};color:${lp===100?"#fff":lp>0?l.accent:"#3A5070"};">${lp===100?"✓":lp>0?"·":""}</div>`;
+    }).join("");
+
+    let memoHtml="";
+    if(isExp){
+      const hist=s.memoHistory||[];
+      if(hist.length){
+        const plans=[...hist.filter(h=>h.type==="plan")].reverse().slice(0,2);
+        const reviews=[...hist.filter(h=>h.type==="review")].reverse().slice(0,2);
+        const maxShow=Math.max(plans.length,reviews.length);
+        let pairHtml="";
+        for(let i=0;i<maxShow;i++){
+          const pp=plans[i];const rr=reviews[i];
+          pairHtml+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;">
+            <div class="peer-memo-entry" style="border-left:2px solid var(--cyan);">${pp?`<div style="font-size:9px;color:var(--muted);margin-bottom:2px;">${fmtShort(pp.date)}</div>${esc(pp.text).substring(0,60)}${pp.text.length>60?"…":""}`:"—"}</div>
+            <div class="peer-memo-entry" style="border-left:2px solid var(--green);">${rr?`<div style="font-size:9px;color:var(--muted);margin-bottom:2px;">${fmtShort(rr.date)}</div>${esc(rr.text).substring(0,60)}${rr.text.length>60?"…":""}`:"—"}</div>
+          </div>`;
+        }
+        memoHtml=`<div class="peer-memo-box">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;">
+            <div style="font-size:9px;font-weight:900;color:var(--cyan);text-align:center;">📋 計画</div>
+            <div style="font-size:9px;font-weight:900;color:var(--green);text-align:center;">💡 分析</div>
+          </div>
+          ${pairHtml}
+          ${Math.max(hist.filter(h=>h.type==="plan").length,hist.filter(h=>h.type==="review").length)>2?`<div style="font-size:9px;color:var(--muted);text-align:center;">…他にも記録があります</div>`:""}
+        </div>`;
+      } else if(s.memoPlan?.trim()||s.memoReview?.trim()){
+        memoHtml=`<div class="peer-memo-box"><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+          <div class="peer-memo-entry" style="border-left:2px solid var(--cyan);">${s.memoPlan?.trim()||"—"}</div>
+          <div class="peer-memo-entry" style="border-left:2px solid var(--green);">${s.memoReview?.trim()||"—"}</div>
+        </div></div>`;
+      }
+    }
+
+    return`<div class="peer-card${isMe?" is-me":""}${isExp?" expanded":""}" onclick="togglePeer('${s.id}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-size:13px;font-weight:900;">${isMe?"⭐ ":""}${s.name}${isMe?" (じぶん)":""}</div>
+        <span style="font-size:13px;font-weight:900;color:${pctColor(p)};">${p}%</span>
+      </div>
+      ${s.className!==studentData.className?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${s.className}</div>`:""}
+      <div class="peer-bar-track"><div class="peer-bar-fill" style="width:${p}%;background:${pctColor(p)};"></div></div>
+      <div class="peer-dots">${dots}</div>
+      <div style="font-size:9px;color:#3A5070;">${LESSONS.filter(l=>getLessonPct(s,l.id)===100).length}/14時間 · ${timeSince(s.updatedAt)}</div>
+      ${isExp?`<div style="font-size:9px;color:var(--muted);text-align:center;margin-top:4px;">▲ とじる</div>`:`<div style="font-size:9px;color:var(--muted);text-align:center;margin-top:4px;">▼ メモを見る</div>`}
+      ${memoHtml}
+    </div>`;
+  }).join("")}</div>`;
+}
+function togglePeer(id){
+  expandedPeer=expandedPeer===id?null:id;
+  renderPeers();
+}
+
+// ─── SAVE AS IMAGE ───────────────────────────────────────────────────────────
+async function saveAsImage(){
+  const btn=document.getElementById("save-img-btn");
+  const origText=btn.innerHTML;
+  btn.innerHTML="📸 保存中…";btn.style.opacity="0.6";btn.disabled=true;
+  const s=studentData;if(!s){btn.innerHTML=origText;btn.style.opacity="1";btn.disabled=false;return;}
+
+  const name=s.name||"";
+  const cls=s.className||"";
+  const pct=getPct(s);
+  const dateStr=new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric"});
+
+  // 14時間なので2列に分けて表示
+  const col1=LESSONS.slice(0,7);
+  const col2=LESSONS.slice(7);
+  const makeDotsHtml=(arr)=>arr.map(l=>{
+    const lp=getLessonPct(s,l.id);
+    return`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #1E2A42;">
+      <div style="width:26px;height:26px;border-radius:5px;background:${lp===100?l.accent:lp>0?l.accent+"38":"#1A2535"};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:${lp===100?"#fff":lp>0?l.accent:"#3A5070"};flex-shrink:0;">${lp===100?"✓":lp>0?lp:"—"}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:10px;font-weight:900;color:#E8EDF8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${l.icon} ${l.title}</div>
+        <div style="font-size:8px;color:#5A7090;">${l.hour} · ${l.stage}</div>
+      </div>
+    </div>`;
+  }).join("");
+  const lessonDotsHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+    <div>${makeDotsHtml(col1)}</div>
+    <div>${makeDotsHtml(col2)}</div>
+  </div>`;
+
+  const evalHtml=RUBRICS.map(r=>{
+    const g=s.selfEval?.[r.id]||"—";
+    const color=g==="A"?"#00D4AA":g==="B"?"#F0A030":g==="C"?"#E84090":"#3A5070";
+    return`<div style="text-align:center;flex:1;">
+      <div style="font-size:24px;font-weight:900;color:${color};">${g}</div>
+      <div style="font-size:9px;color:#7B8FAD;font-weight:700;margin-top:2px;">${r.name}</div>
+    </div>`;
+  }).join("");
+
+  const hist=s.memoHistory||[];
+  const plans=[...hist.filter(h=>h.type==="plan")].reverse();
+  const reviews=[...hist.filter(h=>h.type==="review")].reverse();
+  const maxPairs=Math.max(plans.length,reviews.length);
+  let memoRowsHtml="";
+  if(maxPairs){
+    for(let i=0;i<maxPairs;i++){
+      const p=plans[i];const r=reviews[i];
+      const tcHtml=r&&r.teacherComment?`
+        <div style="margin-top:4px;padding:5px 7px;background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(240,160,48,.06));border:1px solid rgba(255,215,0,.3);border-left:3px solid #FFD700;border-radius:4px;font-size:9px;color:#E8EDF8;line-height:1.6;">
+          <div style="font-size:8px;color:#FFD700;font-weight:900;margin-bottom:2px;">💬 先生から</div>
+          ${esc(r.teacherComment)}
+        </div>`:"";
+      memoRowsHtml+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">
+        <div style="background:#121829;border-radius:6px;padding:6px 8px;border-left:3px solid #3EC8E8;font-size:10px;color:#B8C8E0;line-height:1.5;min-height:24px;">${p?`<span style="font-size:8px;color:#5A7090;">${fmtShort(p.date)}</span><br>${esc(p.text)}`:'<span style="color:#3A5070;">—</span>'}</div>
+        <div style="background:#121829;border-radius:6px;padding:6px 8px;border-left:3px solid #30D878;font-size:10px;color:#B8C8E0;line-height:1.5;min-height:24px;">${r?`<span style="font-size:8px;color:#5A7090;">${fmtShort(r.date)}</span><br>${esc(r.text)}${tcHtml}`:'<span style="color:#3A5070;">—</span>'}</div>
+      </div>`;
+    }
+  } else if(s.memoPlan?.trim()||s.memoReview?.trim()){
+    memoRowsHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <div style="background:#121829;border-radius:6px;padding:6px 8px;border-left:3px solid #3EC8E8;font-size:10px;color:#B8C8E0;line-height:1.5;">${s.memoPlan?.trim()||'<span style="color:#3A5070;">—</span>'}</div>
+      <div style="background:#121829;border-radius:6px;padding:6px 8px;border-left:3px solid #30D878;font-size:10px;color:#B8C8E0;line-height:1.5;">${s.memoReview?.trim()||'<span style="color:#3A5070;">—</span>'}</div>
+    </div>`;
+  }
+
+  const barW=280;
+  const fillW=Math.round(barW*pct/100);
+
+  const card=document.createElement("div");
+  card.style.cssText="position:fixed;top:-9999px;left:-9999px;z-index:-1;";
+  card.innerHTML=`
+  <div id="img-card" style="width:1240px;height:auto;min-height:680px;background:linear-gradient(135deg,#0B0E1A,#101828);font-family:'Zen Maru Gothic','Hiragino Maru Gothic ProN',sans-serif;color:#E8EDF8;padding:32px;border-radius:24px;border:2px solid #1E2A42;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1E2A42;">
+      <div>
+        <div style="font-size:11px;color:#00D4AA;font-weight:900;letter-spacing:.12em;margin-bottom:4px;">📐 小学校 第6学年 算数 ─ 線対称・点対称（東京書籍・全14時間）</div>
+        <div style="font-size:28px;font-weight:900;background:linear-gradient(135deg,#00D4AA,#3EC8E8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${name} のまなびの記録</div>
+        <div style="font-size:12px;color:#5A7090;margin-top:2px;">${cls} ─ ${dateStr}</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:48px;font-weight:900;color:${pctColor(pct)};">${pct}%</div>
+        <div style="font-size:11px;color:#5A7090;font-weight:700;">全体の進捗</div>
+        <svg width="${barW}" height="10" style="margin-top:4px;"><rect width="${barW}" height="10" rx="5" fill="#1A2535"/><rect width="${fillW}" height="10" rx="5" fill="url(#pg)"/><defs><linearGradient id="pg"><stop offset="0%" stop-color="#00D4AA"/><stop offset="100%" stop-color="#3EC8E8"/></linearGradient></defs></svg>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:440px 1fr;gap:20px;">
+      <div>
+        <div style="font-size:11px;font-weight:900;color:#7B8FAD;letter-spacing:.08em;margin-bottom:8px;">📖 授業の達成状況（全14時間）</div>
+        <div style="background:#0F1520;border:1px solid #1E2A42;border-radius:12px;padding:10px 12px;">
+          ${lessonDotsHtml}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:900;color:#7B8FAD;letter-spacing:.08em;margin-bottom:8px;">🪞 自己評価</div>
+        <div style="background:#0F1520;border:1px solid #1E2A42;border-radius:12px;padding:14px 20px;display:flex;gap:8px;margin-bottom:16px;">
+          ${evalHtml}
+        </div>
+        <div style="font-size:11px;font-weight:900;color:#7B8FAD;letter-spacing:.08em;margin-bottom:8px;">📝 けテぶれノート（💬＝先生コメント付き）</div>
+        <div style="background:#0F1520;border:1px solid #1E2A42;border-radius:12px;padding:12px 14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <div style="font-size:10px;font-weight:900;color:#3EC8E8;text-align:center;">📋 計画</div>
+            <div style="font-size:10px;font-weight:900;color:#30D878;text-align:center;">💡 分析</div>
+          </div>
+          ${memoRowsHtml||'<div style="text-align:center;font-size:11px;color:#3A5070;padding:12px;">まだ送信されていません</div>'}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  document.body.appendChild(card);
+
+  try{
+    const target=document.getElementById("img-card");
+    const canvas=await html2canvas(target,{
+      backgroundColor:null,
+      scale:2,
+      useCORS:true,
+      logging:false,
+      width:1240,
+    });
+    canvas.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;
+      const now=new Date();
+      const ts=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`;
+      a.download=`線対称点対称東書14_${name}_${ts}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("📸 画像を保存しました！");
+    },"image/png");
+  }catch(e){
+    console.error(e);
+    showToast("⚠️ 画像の保存に失敗しました");
+  }
+  document.body.removeChild(card);
+  btn.innerHTML=origText;btn.style.opacity="1";btn.disabled=false;
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+(async function init(){
+  const sid=sessionStorage.getItem("sym_tokyo_sid");
+  if(sid){try{const snap=await db.ref(DB_ROOT+"/students/"+sid).once("value");if(snap.val()){studentData=snap.val();renderPortal();document.getElementById("setup").classList.remove("active");document.getElementById("portal").classList.add("active");loadFormUrl();subscribeStudent();}}catch{}}
+  setInterval(()=>{if(currentMode==="teacher"&&teacherUnlocked)fetchAll();},20000);
+})();
+</script>
+</body>
+</html>
